@@ -1,0 +1,5 @@
+# Configuracion de ejemplo para el futuro microservicio ms-citas
+citas:
+  duracion-minutos-default: 30
+  buffer-entre-citas-minutos: 10
+  horas-minimas-anticipacion-cancelacion: 2
