@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+
+  discovery-server:
+    build:
+      context: .
+      dockerfile: discovery-server/Dockerfile
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    networks:
+      - consultorio-net
+
+  config-server:
+    build:
+      context: .
+      dockerfile: config-server/Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: config-server
+    depends_on:
+      - discovery-server
+    networks:
+      - consultorio-net
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: api-gateway
+    depends_on:
+      - discovery-server
+      - config-server
+    networks:
+      - consultorio-net
+
+  ms-citas:
+    build:
+      context: .
+      dockerfile: ms-citas/Dockerfile
+    container_name: ms-citas
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: ms-citas
+    depends_on:
+      - discovery-server
+      - config-server
+    networks:
+      - consultorio-net
+
+networks:
+  consultorio-net:
+    driver: bridge
