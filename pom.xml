@@ -26,6 +26,7 @@
     <module>config-server</module>
     <module>api-gateway</module>
     <module>ms-citas</module>
+    <module>ms-pacientes</module>
   </modules>
 
   <dependencyManagement>
