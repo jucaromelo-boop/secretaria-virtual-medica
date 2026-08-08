@@ -15,9 +15,9 @@ public class Cita {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    @NotNull
     @Column(nullable = false)
-    private String pacienteNombre;
+    private Long pacienteId;
 
     @NotBlank
     @Column(nullable = false)
@@ -39,8 +39,8 @@ public class Cita {
         // constructor vacio requerido por JPA
     }
 
-    public Cita(String pacienteNombre, String medicoNombre, LocalDateTime fechaHora, Integer duracionMinutos) {
-        this.pacienteNombre = pacienteNombre;
+    public Cita(Long pacienteId, String medicoNombre, LocalDateTime fechaHora, Integer duracionMinutos) {
+        this.pacienteId = pacienteId;
         this.medicoNombre = medicoNombre;
         this.fechaHora = fechaHora;
         this.duracionMinutos = duracionMinutos;
@@ -52,12 +52,12 @@ public class Cita {
         return id;
     }
 
-    public String getPacienteNombre() {
-        return pacienteNombre;
+    public Long getPacienteId() {
+        return pacienteId;
     }
 
-    public void setPacienteNombre(String pacienteNombre) {
-        this.pacienteNombre = pacienteNombre;
+    public void setPacienteId(Long pacienteId) {
+        this.pacienteId = pacienteId;
     }
 
     public String getMedicoNombre() {

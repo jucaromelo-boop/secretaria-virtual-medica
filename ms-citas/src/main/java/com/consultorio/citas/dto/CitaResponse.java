@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class CitaResponse {
 
     private Long id;
-    private String pacienteNombre;
+    private Long pacienteId;
     private String medicoNombre;
     private LocalDateTime fechaHora;
     private Integer duracionMinutos;
@@ -16,7 +16,7 @@ public class CitaResponse {
 
     public CitaResponse(Cita cita) {
         this.id = cita.getId();
-        this.pacienteNombre = cita.getPacienteNombre();
+        this.pacienteId = cita.getPacienteId();
         this.medicoNombre = cita.getMedicoNombre();
         this.fechaHora = cita.getFechaHora();
         this.duracionMinutos = cita.getDuracionMinutos();
@@ -27,8 +27,8 @@ public class CitaResponse {
         return id;
     }
 
-    public String getPacienteNombre() {
-        return pacienteNombre;
+    public Long getPacienteId() {
+        return pacienteId;
     }
 
     public String getMedicoNombre() {

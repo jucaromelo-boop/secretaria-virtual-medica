@@ -28,7 +28,7 @@ public class CitaController {
     @PostMapping
     public ResponseEntity<CitaResponse> crearCita(@Valid @RequestBody CrearCitaRequest request) {
         Cita cita = citaService.crearCita(
-                request.getPacienteNombre(),
+                request.getPacienteId(),
                 request.getMedicoNombre(),
                 request.getFechaHora(),
                 request.getDuracionMinutos());
@@ -47,9 +47,9 @@ public class CitaController {
         return new CitaResponse(citaService.buscarPorId(id));
     }
 
-    @GetMapping("/paciente/{pacienteNombre}")
-    public List<CitaResponse> listarPorPaciente(@PathVariable String pacienteNombre) {
-        return citaService.listarPorPaciente(pacienteNombre).stream()
+    @GetMapping("/paciente/{pacienteId}")
+    public List<CitaResponse> listarPorPaciente(@PathVariable("pacienteId") Long pacienteId) {
+        return citaService.listarPorPaciente(pacienteId).stream()
                 .map(CitaResponse::new)
                 .collect(Collectors.toList());
     }

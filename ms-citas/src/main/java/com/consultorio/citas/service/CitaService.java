@@ -9,6 +9,10 @@ import com.consultorio.citas.model.EstadoCita;
 import com.consultorio.citas.repository.CitaRepository;
 import org.springframework.stereotype.Service;
 
+import com.consultorio.citas.client.PacienteClient;
+import com.consultorio.citas.dto.PacienteDTO;
+import com.consultorio.citas.exception.PacienteNoValidoException;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -18,18 +22,25 @@ public class CitaService {
 
     private final CitaRepository citaRepository;
     private final CitasProperties citasProperties;
+    private final PacienteClient pacienteClient;
 
-    public CitaService(CitaRepository citaRepository, CitasProperties citasProperties) {
+    public CitaService(CitaRepository citaRepository, CitasProperties citasProperties, PacienteClient pacienteClient) {
         this.citaRepository = citaRepository;
         this.citasProperties = citasProperties;
+        this.pacienteClient = pacienteClient;
     }
 
-    public Cita crearCita(String pacienteNombre, String medicoNombre, LocalDateTime fechaHora, Integer duracionMinutos) {
+    public Cita crearCita(Long pacienteId, String medicoNombre, LocalDateTime fechaHora, Integer duracionMinutos) {
+        PacienteDTO paciente = pacienteClient.obtenerPaciente(pacienteId);
+        if (!paciente.isActivo()) {
+            throw new PacienteNoValidoException(pacienteId);
+        }
+
         int duracion = duracionMinutos != null ? duracionMinutos : citasProperties.getDuracionMinutosDefault();
 
         validarDisponibilidad(medicoNombre, fechaHora, duracion);
 
-        Cita cita = new Cita(pacienteNombre, medicoNombre, fechaHora, duracion);
+        Cita cita = new Cita(pacienteId, medicoNombre, fechaHora, duracion);
         return citaRepository.save(cita);
     }
 
@@ -42,8 +53,8 @@ public class CitaService {
                 .orElseThrow(() -> new CitaNoEncontradaException(id));
     }
 
-    public List<Cita> listarPorPaciente(String pacienteNombre) {
-        return citaRepository.findByPacienteNombre(pacienteNombre);
+    public List<Cita> listarPorPaciente(Long pacienteId) {
+        return citaRepository.findByPacienteId(pacienteId);
     }
 
     public List<Cita> buscarDisponibilidad(String medicoNombre, LocalDateTime desde, LocalDateTime hasta) {

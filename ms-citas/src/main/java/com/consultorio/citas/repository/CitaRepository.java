@@ -12,7 +12,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     List<Cita> findByMedicoNombreAndFechaHoraBetween(
             String medicoNombre, LocalDateTime desde, LocalDateTime hasta);
 
-    List<Cita> findByPacienteNombre(String pacienteNombre);
+    List<Cita> findByPacienteId(Long pacienteId);
 
     List<Cita> findByEstado(EstadoCita estado);
 }

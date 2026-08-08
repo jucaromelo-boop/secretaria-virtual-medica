@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 public class CrearCitaRequest {
 
-    @NotBlank(message = "El nombre del paciente es obligatorio")
-    private String pacienteNombre;
+    @NotNull(message = "El id del paciente es obligatorio")
+    private Long pacienteId;
 
     @NotBlank(message = "El nombre del medico es obligatorio")
     private String medicoNombre;
@@ -20,12 +20,12 @@ public class CrearCitaRequest {
 
     private Integer duracionMinutos;
 
-    public String getPacienteNombre() {
-        return pacienteNombre;
+    public Long getPacienteId() {
+        return pacienteId;
     }
 
-    public void setPacienteNombre(String pacienteNombre) {
-        this.pacienteNombre = pacienteNombre;
+    public void setPacienteId(Long pacienteId) {
+        this.pacienteId = pacienteId;
     }
 
     public String getMedicoNombre() {
