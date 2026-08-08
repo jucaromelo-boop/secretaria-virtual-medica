@@ -10,6 +10,7 @@ COPY discovery-server/pom.xml discovery-server/
 COPY config-server/pom.xml config-server/
 COPY api-gateway/pom.xml api-gateway/
 COPY ms-citas/pom.xml ms-citas/
+COPY ms-pacientes/pom.xml ms-pacientes/
 
 # Descarga las dependencias de ms-citas y sus modulos necesarios
 RUN mvn -pl ms-citas -am dependency:go-offline -B

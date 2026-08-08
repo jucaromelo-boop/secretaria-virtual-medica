@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
 
   discovery-server:
@@ -76,7 +74,6 @@ services:
       - config-server
     networks:
       - consultorio-net
-
 networks:
   consultorio-net:
     driver: bridge
