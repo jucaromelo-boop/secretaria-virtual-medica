@@ -6,6 +6,7 @@ COPY config-server/pom.xml config-server/
 COPY api-gateway/pom.xml api-gateway/
 COPY ms-citas/pom.xml ms-citas/
 COPY ms-pacientes/pom.xml ms-pacientes/
+COPY ms-medicos/pom.xml ms-medicos/
 RUN mvn -pl api-gateway -am dependency:go-offline -B
 COPY api-gateway api-gateway
 RUN mvn -pl api-gateway -am clean package -DskipTests -B

@@ -11,6 +11,7 @@ COPY config-server/pom.xml config-server/
 COPY api-gateway/pom.xml api-gateway/
 COPY ms-citas/pom.xml ms-citas/
 COPY ms-pacientes/pom.xml ms-pacientes/
+COPY ms-medicos/pom.xml ms-medicos/
 
 # Descarga las dependencias de ms-citas y sus modulos necesarios
 RUN mvn -pl ms-citas -am dependency:go-offline -B

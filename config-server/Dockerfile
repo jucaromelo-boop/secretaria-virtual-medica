@@ -6,6 +6,7 @@ COPY config-server/pom.xml config-server/
 COPY api-gateway/pom.xml api-gateway/
 COPY ms-citas/pom.xml ms-citas/
 COPY ms-pacientes/pom.xml ms-pacientes/
+COPY ms-medicos/pom.xml ms-medicos/
 RUN mvn -pl config-server -am dependency:go-offline -B
 COPY config-server config-server
 RUN mvn -pl config-server -am clean package -DskipTests -B
