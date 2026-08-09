@@ -74,6 +74,23 @@ services:
       - config-server
     networks:
       - consultorio-net
+  ms-medicos:
+    build:
+      context: .
+      dockerfile: ms-medicos/Dockerfile
+    container_name: ms-medicos
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: ms-medicos
+    depends_on:
+      - discovery-server
+      - config-server
+    networks:
+      - consultorio-net
+
 networks:
   consultorio-net:
     driver: bridge

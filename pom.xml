@@ -27,6 +27,7 @@
     <module>api-gateway</module>
     <module>ms-citas</module>
     <module>ms-pacientes</module>
+      <module>ms-medicos</module>
   </modules>
 
   <dependencyManagement>
