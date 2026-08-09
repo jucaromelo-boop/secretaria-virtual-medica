@@ -1,5 +1,7 @@
 FROM maven:3.9-eclipse-temurin-17 AS build
+
 WORKDIR /workspace
+
 COPY pom.xml .
 COPY discovery-server/pom.xml discovery-server/
 COPY config-server/pom.xml config-server/
@@ -8,12 +10,26 @@ COPY ms-citas/pom.xml ms-citas/
 COPY ms-pacientes/pom.xml ms-pacientes/
 COPY ms-medicos/pom.xml ms-medicos/
 COPY ms-notificaciones/pom.xml ms-notificaciones/
-RUN mvn -pl config-server -am dependency:go-offline -B
+
+RUN mvn -pl ms-notificaciones -am dependency:go-offline -B
+
+COPY discovery-server discovery-server
 COPY config-server config-server
-RUN mvn -pl config-server -am clean package -DskipTests -B
+COPY api-gateway api-gateway
+COPY ms-citas ms-citas
+COPY ms-pacientes ms-pacientes
+COPY ms-medicos ms-medicos
+COPY ms-notificaciones ms-notificaciones
+
+
+RUN mvn -pl ms-notificaciones -am clean package -DskipTests -B
 
 FROM eclipse-temurin:17-jre-alpine
+
 WORKDIR /app
-COPY --from=build /workspace/config-server/target/config-server.jar app.jar
-EXPOSE 8888
+
+COPY --from=build /workspace/ms-notificaciones/target/ms-notificaciones.jar app.jar
+
+EXPOSE 8084
+
 ENTRYPOINT ["java", "-jar", "app.jar"]

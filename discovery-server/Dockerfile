@@ -7,6 +7,7 @@ COPY api-gateway/pom.xml api-gateway/
 COPY ms-citas/pom.xml ms-citas/
 COPY ms-pacientes/pom.xml ms-pacientes/
 COPY ms-medicos/pom.xml ms-medicos/
+COPY ms-notificaciones/pom.xml ms-notificaciones/
 RUN mvn -pl discovery-server -am dependency:go-offline -B
 COPY discovery-server discovery-server
 RUN mvn -pl discovery-server -am clean package -DskipTests -B

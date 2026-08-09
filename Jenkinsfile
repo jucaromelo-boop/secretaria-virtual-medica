@@ -61,6 +61,12 @@ pipeline {
             }
         }
 
+        stage('Cleanup Previous Deploy') {
+            steps {
+                sh 'docker compose down || true'
+            }
+        }
+
         stage('Deploy') {
             steps {
                 sh 'docker compose up -d'
@@ -69,7 +75,7 @@ pipeline {
 
         stage('Smoke Test') {
             steps {
-                sh 'sleep 20'
+                sh 'sleep 30'
                 sh 'curl -f http://host.docker.internal:8761/actuator/health'
             }
         }

@@ -52,9 +52,11 @@ services:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: ms-citas
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       - discovery-server
       - config-server
+      - kafka
     networks:
       - consultorio-net
 
@@ -89,6 +91,25 @@ services:
     depends_on:
       - discovery-server
       - config-server
+    networks:
+      - consultorio-net
+
+  ms-notificaciones:
+    build:
+      context: .
+      dockerfile: ms-notificaciones/Dockerfile
+    container_name: ms-notificaciones
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: ms-notificaciones
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      - discovery-server
+      - config-server
+      - kafka
     networks:
       - consultorio-net
 

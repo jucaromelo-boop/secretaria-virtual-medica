@@ -18,6 +18,7 @@ COPY api-gateway api-gateway
 COPY ms-citas ms-citas
 COPY ms-pacientes ms-pacientes
 COPY ms-medicos ms-medicos
+COPY ms-notificaciones/pom.xml ms-notificaciones/
 
 RUN mvn -pl ms-medicos -am clean package -DskipTests -B
 
