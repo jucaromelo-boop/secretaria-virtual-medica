@@ -29,6 +29,7 @@
     <module>ms-pacientes</module>
       <module>ms-medicos</module>
       <module>ms-notificaciones</module>
+      <module>ms-canal-whatsapp</module>
   </modules>
 
   <dependencyManagement>
