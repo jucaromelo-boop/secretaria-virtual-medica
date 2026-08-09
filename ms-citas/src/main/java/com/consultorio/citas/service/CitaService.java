@@ -20,6 +20,7 @@ import java.util.List;
 import com.consultorio.citas.client.MedicoClient;
 import com.consultorio.citas.dto.MedicoDTO;
 import com.consultorio.citas.exception.MedicoNoValidoException;
+import com.consultorio.citas.event.CitaEventPublisher;
 
 @Service
 public class CitaService {
@@ -28,13 +29,16 @@ public class CitaService {
     private final CitasProperties citasProperties;
     private final PacienteClient pacienteClient;
     private final MedicoClient medicoClient;
+    private final CitaEventPublisher citaEventPublisher;
 
     public CitaService(CitaRepository citaRepository, CitasProperties citasProperties,
-                       PacienteClient pacienteClient, MedicoClient medicoClient) {
+                       PacienteClient pacienteClient, MedicoClient medicoClient,
+                       CitaEventPublisher citaEventPublisher) {
         this.citaRepository = citaRepository;
         this.citasProperties = citasProperties;
         this.pacienteClient = pacienteClient;
         this.medicoClient = medicoClient;
+        this.citaEventPublisher = citaEventPublisher;
     }
 
     public Cita crearCita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos) {
@@ -53,7 +57,11 @@ public class CitaService {
         validarDisponibilidad(medicoId, fechaHora, duracion);
 
         Cita cita = new Cita(pacienteId, medicoId, fechaHora, duracion);
-        return citaRepository.save(cita);
+        Cita citaGuardada = citaRepository.save(cita);
+
+        citaEventPublisher.publicarCitaCreada(citaGuardada.getId(), pacienteId, medicoId, fechaHora);
+
+        return citaGuardada;
     }
 
     public List<Cita> listarTodas() {
@@ -84,7 +92,13 @@ public class CitaService {
         }
 
         cita.setEstado(EstadoCita.CANCELADA);
-        return citaRepository.save(cita);
+        Cita citaCancelada = citaRepository.save(cita);
+
+        citaEventPublisher.publicarCitaCancelada(
+                citaCancelada.getId(), citaCancelada.getPacienteId(), citaCancelada.getMedicoId(),
+                citaCancelada.getFechaHora(), motivo);
+
+        return citaCancelada;
     }
 
     private void validarDisponibilidad(Long medicoId, LocalDateTime fechaHora, int duracionMinutos) {

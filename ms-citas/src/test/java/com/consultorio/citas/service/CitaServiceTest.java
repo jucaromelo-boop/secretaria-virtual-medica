@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import com.consultorio.citas.event.CitaEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class CitaServiceTest {
@@ -41,6 +42,9 @@ class CitaServiceTest {
 
     @Mock
     private MedicoClient medicoClient;
+
+    @Mock
+    private CitaEventPublisher citaEventPublisher;
 
     @InjectMocks
     private CitaService citaService;

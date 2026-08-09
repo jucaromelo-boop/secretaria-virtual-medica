@@ -28,6 +28,7 @@
     <module>ms-citas</module>
     <module>ms-pacientes</module>
       <module>ms-medicos</module>
+      <module>ms-notificaciones</module>
   </modules>
 
   <dependencyManagement>

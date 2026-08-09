@@ -60,6 +60,19 @@ pipeline {
                 sh 'docker compose build'
             }
         }
+
+        stage('Deploy') {
+            steps {
+                sh 'docker compose up -d'
+            }
+        }
+
+        stage('Smoke Test') {
+            steps {
+                sh 'sleep 20'
+                sh 'curl -f http://host.docker.internal:8761/actuator/health'
+            }
+        }
     }
 
     post {
