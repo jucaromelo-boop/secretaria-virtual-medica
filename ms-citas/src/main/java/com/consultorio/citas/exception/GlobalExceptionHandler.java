@@ -42,6 +42,11 @@ public class GlobalExceptionHandler {
         return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(MedicoNoValidoException.class)
+    public ResponseEntity<Map<String, Object>> handleMedicoNoValido(MedicoNoValidoException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());

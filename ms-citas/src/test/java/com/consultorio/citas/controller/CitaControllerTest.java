@@ -17,7 +17,6 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -37,15 +36,15 @@ class CitaControllerTest {
     @Test
     void deberiaRetornar201CuandoSeCreaCitaValida() throws Exception {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
-        Cita cita = new Cita(1L, "Dra. Gomez", fechaHora, 30);
+        Cita cita = new Cita(1L, 1L, fechaHora, 30);
 
-        when(citaService.crearCita(anyLong(), anyString(), any(), any()))
+        when(citaService.crearCita(anyLong(), anyLong(), any(), any()))
                 .thenReturn(cita);
 
         String body = """
                 {
                   "pacienteId": 1,
-                  "medicoNombre": "Dra. Gomez",
+                  "medicoId": 1,
                   "fechaHora": "%s",
                   "duracionMinutos": 30
                 }
@@ -56,14 +55,13 @@ class CitaControllerTest {
                         .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.pacienteId").value(1))
-                .andExpect(jsonPath("$.medicoNombre").value("Dra. Gomez"));
+                .andExpect(jsonPath("$.medicoId").value(1));
     }
 
     @Test
     void deberiaRetornar400CuandoFaltaCampoObligatorio() throws Exception {
         String body = """
                 {
-                  "medicoNombre": "Dra. Gomez",
                   "fechaHora": "%s"
                 }
                 """.formatted(LocalDateTime.now().plusDays(1));
@@ -77,13 +75,13 @@ class CitaControllerTest {
 
     @Test
     void deberiaRetornar409CuandoHayConflictoDeHorario() throws Exception {
-        when(citaService.crearCita(anyLong(), anyString(), any(), any()))
-                .thenThrow(new ConflictoHorarioException("El medico Dra. Gomez ya tiene una cita en ese horario"));
+        when(citaService.crearCita(anyLong(), anyLong(), any(), any()))
+                .thenThrow(new ConflictoHorarioException("El medico ya tiene una cita en ese horario"));
 
         String body = """
                 {
                   "pacienteId": 1,
-                  "medicoNombre": "Dra. Gomez",
+                  "medicoId": 1,
                   "fechaHora": "%s",
                   "duracionMinutos": 30
                 }
@@ -93,7 +91,7 @@ class CitaControllerTest {
                         .contentType("application/json")
                         .content(body))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.mensaje").value("El medico Dra. Gomez ya tiene una cita en ese horario"));
+                .andExpect(jsonPath("$.mensaje").value("El medico ya tiene una cita en ese horario"));
     }
 
     @Test
@@ -119,8 +117,8 @@ class CitaControllerTest {
 
     @Test
     void deberiaListarTodasLasCitas() throws Exception {
-        Cita cita1 = new Cita(1L, "Dra. Gomez", LocalDateTime.now().plusDays(1), 30);
-        Cita cita2 = new Cita(2L, "Dr. Ruiz", LocalDateTime.now().plusDays(2), 45);
+        Cita cita1 = new Cita(1L, 1L, LocalDateTime.now().plusDays(1), 30);
+        Cita cita2 = new Cita(2L, 2L, LocalDateTime.now().plusDays(2), 45);
 
         when(citaService.listarTodas()).thenReturn(List.of(cita1, cita2));
 

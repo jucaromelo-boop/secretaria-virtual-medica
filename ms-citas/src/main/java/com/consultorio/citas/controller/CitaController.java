@@ -29,7 +29,7 @@ public class CitaController {
     public ResponseEntity<CitaResponse> crearCita(@Valid @RequestBody CrearCitaRequest request) {
         Cita cita = citaService.crearCita(
                 request.getPacienteId(),
-                request.getMedicoNombre(),
+                request.getMedicoId(),
                 request.getFechaHora(),
                 request.getDuracionMinutos());
         return ResponseEntity.status(HttpStatus.CREATED).body(new CitaResponse(cita));
@@ -56,10 +56,10 @@ public class CitaController {
 
     @GetMapping("/disponibilidad")
     public List<CitaResponse> buscarDisponibilidad(
-            @RequestParam("medicoNombre") String medicoNombre,
+            @RequestParam("medicoId") Long medicoId,
             @RequestParam("desde") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
             @RequestParam("hasta") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta) {
-        return citaService.buscarDisponibilidad(medicoNombre, desde, hasta).stream()
+        return citaService.buscarDisponibilidad(medicoId, desde, hasta).stream()
                 .map(CitaResponse::new)
                 .collect(Collectors.toList());
     }

@@ -9,7 +9,7 @@ public class CitaResponse {
 
     private Long id;
     private Long pacienteId;
-    private String medicoNombre;
+    private Long medicoId;
     private LocalDateTime fechaHora;
     private Integer duracionMinutos;
     private EstadoCita estado;
@@ -17,7 +17,7 @@ public class CitaResponse {
     public CitaResponse(Cita cita) {
         this.id = cita.getId();
         this.pacienteId = cita.getPacienteId();
-        this.medicoNombre = cita.getMedicoNombre();
+        this.medicoId = cita.getMedicoId();
         this.fechaHora = cita.getFechaHora();
         this.duracionMinutos = cita.getDuracionMinutos();
         this.estado = cita.getEstado();
@@ -31,8 +31,8 @@ public class CitaResponse {
         return pacienteId;
     }
 
-    public String getMedicoNombre() {
-        return medicoNombre;
+    public Long getMedicoId() {
+        return medicoId;
     }
 
     public LocalDateTime getFechaHora() {

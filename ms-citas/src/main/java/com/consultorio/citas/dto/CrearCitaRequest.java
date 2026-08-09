@@ -11,8 +11,8 @@ public class CrearCitaRequest {
     @NotNull(message = "El id del paciente es obligatorio")
     private Long pacienteId;
 
-    @NotBlank(message = "El nombre del medico es obligatorio")
-    private String medicoNombre;
+    @NotNull(message = "El id del medico es obligatorio")
+    private Long medicoId;
 
     @NotNull(message = "La fecha y hora son obligatorias")
     @Future(message = "La fecha de la cita debe ser futura")
@@ -28,12 +28,12 @@ public class CrearCitaRequest {
         this.pacienteId = pacienteId;
     }
 
-    public String getMedicoNombre() {
-        return medicoNombre;
+    public Long getMedicoId() {
+        return medicoId;
     }
 
-    public void setMedicoNombre(String medicoNombre) {
-        this.medicoNombre = medicoNombre;
+    public void setMedicoId(Long medicoId) {
+        this.medicoId = medicoId;
     }
 
     public LocalDateTime getFechaHora() {

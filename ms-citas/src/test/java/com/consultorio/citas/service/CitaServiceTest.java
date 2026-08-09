@@ -1,7 +1,9 @@
 package com.consultorio.citas.service;
 
+import com.consultorio.citas.client.MedicoClient;
 import com.consultorio.citas.client.PacienteClient;
 import com.consultorio.citas.config.CitasProperties;
+import com.consultorio.citas.dto.MedicoDTO;
 import com.consultorio.citas.dto.PacienteDTO;
 import com.consultorio.citas.exception.CancelacionNoPermitidaException;
 import com.consultorio.citas.exception.CitaNoEncontradaException;
@@ -23,7 +25,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +39,9 @@ class CitaServiceTest {
     @Mock
     private PacienteClient pacienteClient;
 
+    @Mock
+    private MedicoClient medicoClient;
+
     @InjectMocks
     private CitaService citaService;
 
@@ -49,21 +53,30 @@ class CitaServiceTest {
         return dto;
     }
 
+    private MedicoDTO medicoActivo(Long id) {
+        MedicoDTO dto = new MedicoDTO();
+        dto.setId(id);
+        dto.setNombreCompleto("Dra. Gomez");
+        dto.setActivo(true);
+        return dto;
+    }
+
     @Test
     void deberiaCrearCitaCuandoNoHayConflictoDeHorario() {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
         when(pacienteClient.obtenerPaciente(1L)).thenReturn(pacienteActivo(1L));
+        when(medicoClient.obtenerMedico(1L)).thenReturn(medicoActivo(1L));
         when(citasProperties.getBufferEntreCitasMinutos()).thenReturn(10);
-        when(citaRepository.findByMedicoNombreAndFechaHoraBetween(anyString(), any(), any()))
+        when(citaRepository.findByMedicoIdAndFechaHoraBetween(any(), any(), any()))
                 .thenReturn(Collections.emptyList());
         when(citaRepository.save(any(Cita.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cita resultado = citaService.crearCita(1L, "Dra. Gomez", fechaHora, 30);
+        Cita resultado = citaService.crearCita(1L, 1L, fechaHora, 30);
 
         assertThat(resultado).isNotNull();
         assertThat(resultado.getPacienteId()).isEqualTo(1L);
-        assertThat(resultado.getMedicoNombre()).isEqualTo("Dra. Gomez");
+        assertThat(resultado.getMedicoId()).isEqualTo(1L);
         verify(citaRepository, times(1)).save(any(Cita.class));
     }
 
@@ -71,14 +84,15 @@ class CitaServiceTest {
     void deberiaUsarDuracionPorDefectoCuandoNoSeEspecifica() {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
         when(pacienteClient.obtenerPaciente(1L)).thenReturn(pacienteActivo(1L));
+        when(medicoClient.obtenerMedico(1L)).thenReturn(medicoActivo(1L));
         when(citasProperties.getDuracionMinutosDefault()).thenReturn(30);
         when(citasProperties.getBufferEntreCitasMinutos()).thenReturn(10);
-        when(citaRepository.findByMedicoNombreAndFechaHoraBetween(anyString(), any(), any()))
+        when(citaRepository.findByMedicoIdAndFechaHoraBetween(any(), any(), any()))
                 .thenReturn(Collections.emptyList());
         when(citaRepository.save(any(Cita.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cita resultado = citaService.crearCita(1L, "Dra. Gomez", fechaHora, null);
+        Cita resultado = citaService.crearCita(1L, 1L, fechaHora, null);
 
         assertThat(resultado.getDuracionMinutos()).isEqualTo(30);
     }
@@ -86,17 +100,17 @@ class CitaServiceTest {
     @Test
     void deberiaLanzarConflictoHorarioCuandoMedicoYaTieneCitaEnEseRango() {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
-        Cita citaExistente = new Cita(99L, "Dra. Gomez", fechaHora, 30);
+        Cita citaExistente = new Cita(99L, 1L, fechaHora, 30);
 
         when(pacienteClient.obtenerPaciente(1L)).thenReturn(pacienteActivo(1L));
+        when(medicoClient.obtenerMedico(1L)).thenReturn(medicoActivo(1L));
         when(citasProperties.getBufferEntreCitasMinutos()).thenReturn(10);
-        when(citaRepository.findByMedicoNombreAndFechaHoraBetween(anyString(), any(), any()))
+        when(citaRepository.findByMedicoIdAndFechaHoraBetween(any(), any(), any()))
                 .thenReturn(List.of(citaExistente));
 
         assertThatThrownBy(() ->
-                citaService.crearCita(1L, "Dra. Gomez", fechaHora, 30))
-                .isInstanceOf(ConflictoHorarioException.class)
-                .hasMessageContaining("Dra. Gomez");
+                citaService.crearCita(1L, 1L, fechaHora, 30))
+                .isInstanceOf(ConflictoHorarioException.class);
 
         verify(citaRepository, never()).save(any(Cita.class));
     }
@@ -104,17 +118,18 @@ class CitaServiceTest {
     @Test
     void noDeberiaLanzarConflictoSiLaCitaExistenteEstaCancelada() {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
-        Cita citaCancelada = new Cita(99L, "Dra. Gomez", fechaHora, 30);
+        Cita citaCancelada = new Cita(99L, 1L, fechaHora, 30);
         citaCancelada.setEstado(EstadoCita.CANCELADA);
 
         when(pacienteClient.obtenerPaciente(1L)).thenReturn(pacienteActivo(1L));
+        when(medicoClient.obtenerMedico(1L)).thenReturn(medicoActivo(1L));
         when(citasProperties.getBufferEntreCitasMinutos()).thenReturn(10);
-        when(citaRepository.findByMedicoNombreAndFechaHoraBetween(anyString(), any(), any()))
+        when(citaRepository.findByMedicoIdAndFechaHoraBetween(any(), any(), any()))
                 .thenReturn(List.of(citaCancelada));
         when(citaRepository.save(any(Cita.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cita resultado = citaService.crearCita(1L, "Dra. Gomez", fechaHora, 30);
+        Cita resultado = citaService.crearCita(1L, 1L, fechaHora, 30);
 
         assertThat(resultado).isNotNull();
         verify(citaRepository, times(1)).save(any(Cita.class));
@@ -122,7 +137,7 @@ class CitaServiceTest {
 
     @Test
     void noDeberiaPermitirCancelarConMenosDeLasHorasMinimas() {
-        Cita cita = new Cita(1L, "Dra. Gomez", LocalDateTime.now().plusMinutes(30), 30);
+        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusMinutes(30), 30);
         when(citaRepository.findById(1L)).thenReturn(Optional.of(cita));
         when(citasProperties.getHorasMinimasAnticipacionCancelacion()).thenReturn(2);
 
@@ -134,7 +149,7 @@ class CitaServiceTest {
 
     @Test
     void deberiaPermitirCancelarConSuficienteAnticipacion() {
-        Cita cita = new Cita(1L, "Dra. Gomez", LocalDateTime.now().plusDays(1), 30);
+        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusDays(1), 30);
         when(citaRepository.findById(1L)).thenReturn(Optional.of(cita));
         when(citasProperties.getHorasMinimasAnticipacionCancelacion()).thenReturn(2);
         when(citaRepository.save(any(Cita.class)))

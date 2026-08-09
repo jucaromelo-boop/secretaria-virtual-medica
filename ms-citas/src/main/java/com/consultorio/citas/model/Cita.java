@@ -19,9 +19,9 @@ public class Cita {
     @Column(nullable = false)
     private Long pacienteId;
 
-    @NotBlank
+    @NotNull
     @Column(nullable = false)
-    private String medicoNombre;
+    private Long medicoId;
 
     @NotNull
     @Future
@@ -39,9 +39,9 @@ public class Cita {
         // constructor vacio requerido por JPA
     }
 
-    public Cita(Long pacienteId, String medicoNombre, LocalDateTime fechaHora, Integer duracionMinutos) {
+    public Cita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos) {
         this.pacienteId = pacienteId;
-        this.medicoNombre = medicoNombre;
+        this.medicoId = medicoId;
         this.fechaHora = fechaHora;
         this.duracionMinutos = duracionMinutos;
     }
@@ -60,13 +60,8 @@ public class Cita {
         this.pacienteId = pacienteId;
     }
 
-    public String getMedicoNombre() {
-        return medicoNombre;
-    }
-
-    public void setMedicoNombre(String medicoNombre) {
-        this.medicoNombre = medicoNombre;
-    }
+    public Long getMedicoId() { return medicoId; }
+    public void setMedicoId(Long medicoId) { this.medicoId = medicoId; }
 
     public LocalDateTime getFechaHora() {
         return fechaHora;

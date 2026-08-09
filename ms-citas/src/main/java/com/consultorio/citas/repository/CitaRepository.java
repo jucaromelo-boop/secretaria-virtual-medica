@@ -9,8 +9,7 @@ import java.util.List;
 
 public interface CitaRepository extends JpaRepository<Cita, Long> {
 
-    List<Cita> findByMedicoNombreAndFechaHoraBetween(
-            String medicoNombre, LocalDateTime desde, LocalDateTime hasta);
+    List<Cita> findByMedicoIdAndFechaHoraBetween(Long medicoId, LocalDateTime desde, LocalDateTime hasta);
 
     List<Cita> findByPacienteId(Long pacienteId);
 

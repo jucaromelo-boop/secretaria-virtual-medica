@@ -17,30 +17,42 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import com.consultorio.citas.client.MedicoClient;
+import com.consultorio.citas.dto.MedicoDTO;
+import com.consultorio.citas.exception.MedicoNoValidoException;
+
 @Service
 public class CitaService {
 
     private final CitaRepository citaRepository;
     private final CitasProperties citasProperties;
     private final PacienteClient pacienteClient;
+    private final MedicoClient medicoClient;
 
-    public CitaService(CitaRepository citaRepository, CitasProperties citasProperties, PacienteClient pacienteClient) {
+    public CitaService(CitaRepository citaRepository, CitasProperties citasProperties,
+                       PacienteClient pacienteClient, MedicoClient medicoClient) {
         this.citaRepository = citaRepository;
         this.citasProperties = citasProperties;
         this.pacienteClient = pacienteClient;
+        this.medicoClient = medicoClient;
     }
 
-    public Cita crearCita(Long pacienteId, String medicoNombre, LocalDateTime fechaHora, Integer duracionMinutos) {
+    public Cita crearCita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos) {
         PacienteDTO paciente = pacienteClient.obtenerPaciente(pacienteId);
         if (!paciente.isActivo()) {
             throw new PacienteNoValidoException(pacienteId);
         }
 
+        MedicoDTO medico = medicoClient.obtenerMedico(medicoId);
+        if (!medico.isActivo()) {
+            throw new MedicoNoValidoException(medicoId);
+        }
+
         int duracion = duracionMinutos != null ? duracionMinutos : citasProperties.getDuracionMinutosDefault();
 
-        validarDisponibilidad(medicoNombre, fechaHora, duracion);
+        validarDisponibilidad(medicoId, fechaHora, duracion);
 
-        Cita cita = new Cita(pacienteId, medicoNombre, fechaHora, duracion);
+        Cita cita = new Cita(pacienteId, medicoId, fechaHora, duracion);
         return citaRepository.save(cita);
     }
 
@@ -57,8 +69,8 @@ public class CitaService {
         return citaRepository.findByPacienteId(pacienteId);
     }
 
-    public List<Cita> buscarDisponibilidad(String medicoNombre, LocalDateTime desde, LocalDateTime hasta) {
-        return citaRepository.findByMedicoNombreAndFechaHoraBetween(medicoNombre, desde, hasta);
+    public List<Cita> buscarDisponibilidad(Long medicoId, LocalDateTime desde, LocalDateTime hasta) {
+        return citaRepository.findByMedicoIdAndFechaHoraBetween(medicoId, desde, hasta);
     }
 
     public Cita cancelarCita(Long id, String motivo) {
@@ -75,19 +87,19 @@ public class CitaService {
         return citaRepository.save(cita);
     }
 
-    private void validarDisponibilidad(String medicoNombre, LocalDateTime fechaHora, int duracionMinutos) {
+    private void validarDisponibilidad(Long medicoId, LocalDateTime fechaHora, int duracionMinutos) {
         LocalDateTime finPropuesto = fechaHora.plusMinutes(duracionMinutos + citasProperties.getBufferEntreCitasMinutos());
         LocalDateTime inicioPropuesto = fechaHora.minusMinutes(citasProperties.getBufferEntreCitasMinutos());
 
-        List<Cita> citasDelMedico = citaRepository.findByMedicoNombreAndFechaHoraBetween(
-                medicoNombre, inicioPropuesto, finPropuesto);
+        List<Cita> citasDelMedico = citaRepository.findByMedicoIdAndFechaHoraBetween(
+                medicoId, inicioPropuesto, finPropuesto);
 
         boolean hayConflicto = citasDelMedico.stream()
                 .anyMatch(c -> c.getEstado() != EstadoCita.CANCELADA);
 
         if (hayConflicto) {
             throw new ConflictoHorarioException(
-                    "El medico " + medicoNombre + " ya tiene una cita en ese horario (considerando el buffer)");
+                    "El medico con id " + medicoId + " ya tiene una cita en ese horario (considerando el buffer)");
         }
     }
 }
