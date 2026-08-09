@@ -30,6 +30,7 @@
       <module>ms-medicos</module>
       <module>ms-notificaciones</module>
       <module>ms-canal-whatsapp</module>
+    <module>ms-orquestador-ia</module>
   </modules>
 
   <dependencyManagement>
