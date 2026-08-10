@@ -46,17 +46,28 @@ public class ClaudeClient {
         List<ClaudeMessage> conversacion = new ArrayList<>(historial);
 
         for (int i = 0; i < MAX_ITERACIONES; i++) {
-            ClaudeResponse response = llamarClaude(systemPrompt, conversacion, tools);
+            ClaudeResponse response;
+            try {
+                response = llamarClaude(systemPrompt, conversacion, tools);
+            } catch (Exception ex) {
+                log.error("Error llamando a la API de Claude", ex);
+                return "Disculpa, tuve un problema para procesar tu mensaje. ¿Puedes intentar de nuevo?";
+            }
 
             if (response == null || response.getContent() == null) {
+                log.warn("Respuesta de Claude nula o sin contenido");
                 return "Disculpa, tuve un problema para procesar tu mensaje. ¿Puedes intentar de nuevo?";
+            }
+
+            log.info("stopReason: {}, cantidad de bloques: {}", response.getStopReason(), response.getContent().size());
+            for (ClaudeResponse.ContenidoBloque bloque : response.getContent()) {
+                log.info("Bloque tipo={}, text={}, name={}", bloque.getType(), bloque.getText(), bloque.getName());
             }
 
             if (!"tool_use".equals(response.getStopReason())) {
                 return extraerTexto(response);
             }
 
-            // Claude quiere usar una o mas herramientas
             conversacion.add(new ClaudeMessage("assistant", construirBloquesAssistant(response)));
 
             List<Map<String, Object>> resultadosTools = new ArrayList<>();
