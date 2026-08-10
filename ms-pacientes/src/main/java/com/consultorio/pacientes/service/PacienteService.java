@@ -3,8 +3,10 @@ package com.consultorio.pacientes.service;
 import com.consultorio.pacientes.exception.DocumentoDuplicadoException;
 import com.consultorio.pacientes.exception.PacienteNoEncontradoException;
 import com.consultorio.pacientes.model.Paciente;
+import com.consultorio.pacientes.model.TipoDocumento;
 import com.consultorio.pacientes.repository.PacienteRepository;
 import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 import java.util.List;
 
@@ -76,5 +78,26 @@ public class PacienteService {
         Paciente paciente = buscarPorId(id);
         paciente.setActivo(true);
         return pacienteRepository.save(paciente);
+    }
+
+    public Optional<Paciente> buscarPorTelefono(String telefono) {
+        return pacienteRepository.findByTelefono(telefono);
+    }
+
+    public Paciente registroRapido(String telefono, String nombreCompleto) {
+        Optional<Paciente> existente = pacienteRepository.findByTelefono(telefono);
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+
+        try {
+            Paciente paciente = new Paciente(nombreCompleto, "WA-" + telefono, TipoDocumento.OTRO);
+            paciente.setTelefono(telefono);
+            return pacienteRepository.save(paciente);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // Otra peticion concurrente ya lo registro entre el check y el insert
+            return pacienteRepository.findByTelefono(telefono)
+                    .orElseThrow(() -> ex);
+        }
     }
 }

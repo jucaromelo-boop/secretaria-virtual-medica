@@ -72,6 +72,20 @@ public class PacienteController {
         return new PacienteResponse(paciente);
     }
 
+    @GetMapping("/telefono/{telefono}")
+    public ResponseEntity<PacienteResponse> buscarPorTelefono(@PathVariable("telefono") String telefono) {
+        return pacienteService.buscarPorTelefono(telefono)
+                .map(p -> ResponseEntity.ok(new PacienteResponse(p)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/registro-rapido")
+    public ResponseEntity<PacienteResponse> registroRapido(@RequestParam("telefono") String telefono,
+                                                           @RequestParam("nombre") String nombre) {
+        Paciente paciente = pacienteService.registroRapido(telefono, nombre);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(paciente));
+    }
+
     private Paciente mapearARequest(PacienteRequest request) {
         Paciente paciente = new Paciente(
                 request.getNombreCompleto(),

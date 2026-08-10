@@ -1,0 +1,114 @@
+package com.consultorio.orquestadoria.skill;
+
+import com.consultorio.orquestadoria.client.CitasClient;
+import com.consultorio.orquestadoria.client.MedicosClient;
+import com.consultorio.orquestadoria.client.PacientesClient;
+import com.consultorio.orquestadoria.client.dto.CitaDTO;
+import com.consultorio.orquestadoria.client.dto.EspecialidadDTO;
+import com.consultorio.orquestadoria.client.dto.MedicoDTO;
+import com.consultorio.orquestadoria.client.dto.PacienteDTO;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Component
+public class SkillExecutor {
+
+    private final MedicosClient medicosClient;
+    private final PacientesClient pacientesClient;
+    private final CitasClient citasClient;
+
+    public SkillExecutor(MedicosClient medicosClient, PacientesClient pacientesClient, CitasClient citasClient) {
+        this.medicosClient = medicosClient;
+        this.pacientesClient = pacientesClient;
+        this.citasClient = citasClient;
+    }
+
+    public String ejecutar(String nombreSkill, Map<String, Object> input) {
+        try {
+            return switch (nombreSkill) {
+                case "buscar_especialidades" -> buscarEspecialidades();
+                case "buscar_medicos_por_especialidad" -> buscarMedicosPorEspecialidad(input);
+                case "identificar_o_registrar_paciente" -> identificarORegistrarPaciente(input);
+                case "crear_cita" -> crearCita(input);
+                case "consultar_citas_paciente" -> consultarCitasPaciente(input);
+                case "cancelar_cita" -> cancelarCita(input);
+                default -> "Skill desconocida: " + nombreSkill;
+            };
+        } catch (Exception ex) {
+            return "Ocurrio un error ejecutando la operacion: " + ex.getMessage();
+        }
+    }
+
+    private String buscarEspecialidades() {
+        List<EspecialidadDTO> especialidades = medicosClient.listarEspecialidades();
+        if (especialidades.isEmpty()) {
+            return "No hay especialidades registradas actualmente.";
+        }
+        return especialidades.stream()
+                .map(e -> e.getNombre() + (e.getDescripcion() != null ? " - " + e.getDescripcion() : ""))
+                .collect(Collectors.joining("; "));
+    }
+
+    private String buscarMedicosPorEspecialidad(Map<String, Object> input) {
+        String especialidad = (String) input.get("especialidad");
+        List<MedicoDTO> medicos = medicosClient.buscarPorEspecialidad(especialidad);
+        if (medicos.isEmpty()) {
+            return "No se encontraron medicos disponibles para la especialidad " + especialidad;
+        }
+        return medicos.stream()
+                .map(m -> "medicoId=" + m.getId() + ", nombre=" + m.getNombreCompleto())
+                .collect(Collectors.joining("; "));
+    }
+
+    private String identificarORegistrarPaciente(Map<String, Object> input) {
+        String telefono = (String) input.get("telefono");
+        Optional<PacienteDTO> existente = pacientesClient.buscarPorTelefono(telefono);
+
+        if (existente.isPresent()) {
+            PacienteDTO p = existente.get();
+            return "Paciente encontrado: pacienteId=" + p.getId() + ", nombre=" + p.getNombreCompleto();
+        }
+
+        String nombre = (String) input.get("nombreCompleto");
+        if (nombre == null || nombre.isBlank()) {
+            return "El paciente no esta registrado. Necesitas pedirle su nombre completo antes de continuar.";
+        }
+
+        PacienteDTO creado = pacientesClient.registroRapido(telefono, nombre);
+        return "Paciente registrado exitosamente: pacienteId=" + creado.getId() + ", nombre=" + creado.getNombreCompleto();
+    }
+
+    private String crearCita(Map<String, Object> input) {
+        Long pacienteId = ((Number) input.get("pacienteId")).longValue();
+        Long medicoId = ((Number) input.get("medicoId")).longValue();
+        String fechaHora = (String) input.get("fechaHora");
+        Integer duracion = input.get("duracionMinutos") != null
+                ? ((Number) input.get("duracionMinutos")).intValue() : 30;
+
+        return citasClient.crearCita(pacienteId, medicoId, fechaHora, duracion);
+    }
+
+    private String consultarCitasPaciente(Map<String, Object> input) {
+        Long pacienteId = ((Number) input.get("pacienteId")).longValue();
+        List<CitaDTO> citas = citasClient.listarPorPaciente(pacienteId);
+
+        if (citas.isEmpty()) {
+            return "El paciente no tiene citas registradas.";
+        }
+
+        return citas.stream()
+                .map(c -> "citaId=" + c.getId() + ", fecha=" + c.getFechaHora() + ", estado=" + c.getEstado())
+                .collect(Collectors.joining("; "));
+    }
+
+    private String cancelarCita(Map<String, Object> input) {
+        Long citaId = ((Number) input.get("citaId")).longValue();
+        String motivo = input.get("motivo") != null ? (String) input.get("motivo") : "No especificado";
+
+        return citasClient.cancelarCita(citaId, motivo);
+    }
+}
