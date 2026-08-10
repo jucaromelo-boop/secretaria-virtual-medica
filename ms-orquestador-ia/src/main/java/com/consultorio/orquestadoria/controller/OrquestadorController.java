@@ -19,9 +19,9 @@ public class OrquestadorController {
         this.orquestadorService = orquestadorService;
     }
 
-    @PostMapping(value = "/mensaje", produces = "application/json;charset=UTF-8")
+    @PostMapping("/mensaje")
     public MensajeResponse procesarMensaje(@Valid @RequestBody MensajeRequest request) {
-        String respuesta = orquestadorService.responder(request.getTexto());
+        String respuesta = orquestadorService.responder(request.getTexto(), request.getNumeroTelefono());
         return new MensajeResponse(respuesta);
     }
 }

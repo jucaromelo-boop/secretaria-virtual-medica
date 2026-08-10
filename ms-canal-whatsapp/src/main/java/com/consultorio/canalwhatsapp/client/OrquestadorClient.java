@@ -19,11 +19,11 @@ public class OrquestadorClient {
         this.restTemplate = restTemplate;
     }
 
-    public String obtenerRespuesta(String texto) {
+    public String obtenerRespuesta(String texto, String numeroTelefono) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        OrquestadorRequest request = new OrquestadorRequest(texto);
+        OrquestadorRequest request = new OrquestadorRequest(texto, numeroTelefono);
         HttpEntity<OrquestadorRequest> entity = new HttpEntity<>(request, headers);
 
         OrquestadorResponse response = restTemplate.postForObject(BASE_URL, entity, OrquestadorResponse.class);
