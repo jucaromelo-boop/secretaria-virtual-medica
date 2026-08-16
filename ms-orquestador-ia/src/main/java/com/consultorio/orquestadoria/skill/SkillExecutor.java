@@ -1,6 +1,7 @@
 package com.consultorio.orquestadoria.skill;
 
 import com.consultorio.orquestadoria.client.CitasClient;
+import com.consultorio.orquestadoria.client.ListaEsperaClient;
 import com.consultorio.orquestadoria.client.MedicosClient;
 import com.consultorio.orquestadoria.client.PacientesClient;
 import com.consultorio.orquestadoria.client.dto.*;
@@ -17,11 +18,14 @@ public class SkillExecutor {
     private final MedicosClient medicosClient;
     private final PacientesClient pacientesClient;
     private final CitasClient citasClient;
+    private final ListaEsperaClient listaEsperaClient;
 
-    public SkillExecutor(MedicosClient medicosClient, PacientesClient pacientesClient, CitasClient citasClient) {
+    public SkillExecutor(MedicosClient medicosClient, PacientesClient pacientesClient, CitasClient citasClient,
+                         ListaEsperaClient listaEsperaClient) {
         this.medicosClient = medicosClient;
         this.pacientesClient = pacientesClient;
         this.citasClient = citasClient;
+        this.listaEsperaClient = listaEsperaClient;
     }
 
     public String ejecutar(String nombreSkill, Map<String, Object> input, String telefonoConversacion) {
@@ -38,6 +42,7 @@ public class SkillExecutor {
                 case "cancelar_cita_como_medico" -> cancelarCitaComoMedico(input);
                 case "listar_pacientes_del_telefono" -> listarPacientesDelTelefono(telefonoConversacion);
                 case "registrar_familiar" -> registrarFamiliar(input, telefonoConversacion);
+                case "registrar_lista_espera" -> registrarListaEspera(input);
                 default -> "Skill desconocida: " + nombreSkill;
             };
         } catch (Exception ex) {
@@ -174,5 +179,22 @@ public class SkillExecutor {
         String motivo = (String) input.get("motivo");
 
         return citasClient.cancelarCita(citaId, motivo);
+    }
+
+    private String registrarListaEspera(Map<String, Object> input) {
+        Long pacienteId = ((Number) input.get("pacienteId")).longValue();
+        Long medicoId = ((Number) input.get("medicoId")).longValue();
+
+        @SuppressWarnings("unchecked")
+        List<String> diasTexto = (List<String>) input.get("diasPreferidos");
+        java.util.Set<java.time.DayOfWeek> dias = diasTexto.stream()
+                .map(java.time.DayOfWeek::valueOf)
+                .collect(Collectors.toSet());
+
+        java.time.LocalTime horaInicio = java.time.LocalTime.parse((String) input.get("horaInicioPreferida"));
+        java.time.LocalTime horaFin = java.time.LocalTime.parse((String) input.get("horaFinPreferida"));
+        java.time.LocalDate fechaLimite = java.time.LocalDate.parse((String) input.get("fechaLimite"));
+
+        return listaEsperaClient.registrar(pacienteId, medicoId, dias, horaInicio, horaFin, fechaLimite);
     }
 }

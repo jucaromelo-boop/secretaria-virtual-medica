@@ -1,8 +1,10 @@
 package com.consultorio.notificaciones.service;
 
 import com.consultorio.notificaciones.client.CanalWhatsappClient;
+import com.consultorio.notificaciones.client.CitasClient;
 import com.consultorio.notificaciones.client.PacientesClient;
 import com.consultorio.notificaciones.client.dto.CitaDTO;
+import com.consultorio.notificaciones.client.dto.ListaEsperaDTO;
 import com.consultorio.notificaciones.client.dto.PacienteDTO;
 import com.consultorio.notificaciones.model.EstadoNotificacion;
 import com.consultorio.notificaciones.model.Notificacion;
@@ -23,12 +25,15 @@ public class NotificacionService {
     private final NotificacionRepository notificacionRepository;
     private final PacientesClient pacientesClient;
     private final CanalWhatsappClient canalWhatsappClient;
+    private final CitasClient citasClient;
 
     public NotificacionService(NotificacionRepository notificacionRepository,
-                               PacientesClient pacientesClient, CanalWhatsappClient canalWhatsappClient) {
+                               PacientesClient pacientesClient, CanalWhatsappClient canalWhatsappClient,
+                               CitasClient citasClient) {
         this.notificacionRepository = notificacionRepository;
         this.pacientesClient = pacientesClient;
         this.canalWhatsappClient = canalWhatsappClient;
+        this.citasClient = citasClient;
     }
 
     public void procesarCitaCreada(Long citaId, Long pacienteId, Long medicoId, LocalDateTime fechaHora) {
@@ -47,11 +52,38 @@ public class NotificacionService {
         Notificacion notificacion = new Notificacion(citaId, pacienteId, medicoId, TipoNotificacion.CITA_CANCELADA, mensajeMedico);
         enviar(notificacion);
 
-        // Notificacion saliente por WhatsApp AL PACIENTE
         notificarPacientePorWhatsapp(pacienteId,
                 "Hola, te escribimos para avisarte que tu cita del " + fechaHora
                         + " fue cancelada. Motivo: " + (motivo != null ? motivo : "no especificado")
                         + ". Si quieres, podemos ayudarte a agendar una nueva fecha, solo escribenos.");
+
+        ofrecerEspacioALitaDeEspera(medicoId, fechaHora);
+    }
+
+    private void ofrecerEspacioALitaDeEspera(Long medicoId, LocalDateTime fechaHoraLiberada) {
+        List<ListaEsperaDTO> candidatos = citasClient.buscarCandidatos(medicoId, fechaHoraLiberada);
+
+        if (candidatos.isEmpty()) {
+            log.info("No hay candidatos en lista de espera para el horario liberado {}", fechaHoraLiberada);
+            return;
+        }
+
+        log.info("Encontrados {} candidatos en lista de espera para el horario {}", candidatos.size(), fechaHoraLiberada);
+
+        for (ListaEsperaDTO candidato : candidatos) {
+            try {
+                PacienteDTO paciente = pacientesClient.obtenerPaciente(candidato.getPacienteId());
+                if (paciente != null && paciente.getTelefono() != null) {
+                    String mensaje = "Hola! Se libero un espacio con el medico el " + fechaHoraLiberada
+                            + ", justo dentro de tu disponibilidad en lista de espera. "
+                            + "Si lo quieres, escribenos ahorita mismo para confirmarlo antes de que se lo den a alguien mas.";
+                    canalWhatsappClient.enviarMensaje(paciente.getTelefono(), mensaje);
+                    citasClient.marcarOfrecida(candidato.getId());
+                }
+            } catch (Exception ex) {
+                log.error("Error ofreciendo espacio a candidato {}: {}", candidato.getPacienteId(), ex.getMessage());
+            }
+        }
     }
 
     private void notificarPacientePorWhatsapp(Long pacienteId, String mensaje) {

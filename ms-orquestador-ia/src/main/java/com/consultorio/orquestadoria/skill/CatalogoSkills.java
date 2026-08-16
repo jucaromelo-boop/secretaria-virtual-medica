@@ -111,6 +111,22 @@ public class CatalogoSkills {
                                         "parentesco", Map.of("type", "string", "description", "Relacion con el titular, ej: Hijo, Hija, Esposa, Esposo, Padre, Madre")
                                 ),
                                 "required", List.of("nombreCompleto", "parentesco"))
+                ),
+                new ToolDefinition(
+                        "registrar_lista_espera",
+                        "Registra al paciente en la lista de espera para un medico, indicando dias y horarios preferidos y hasta cuando le sirve esperar. Usa esto cuando no haya disponibilidad inmediata y el paciente quiera que le avisen si se libera un espacio.",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "pacienteId", Map.of("type", "integer", "description", "Id del paciente"),
+                                        "medicoId", Map.of("type", "integer", "description", "Id del medico"),
+                                        "diasPreferidos", Map.of("type", "array", "description",
+                                                "Dias de la semana en ingles y mayusculas, ej: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY",
+                                                "items", Map.of("type", "string")),
+                                        "horaInicioPreferida", Map.of("type", "string", "description", "Hora de inicio del rango preferido, formato HH:mm:ss"),
+                                        "horaFinPreferida", Map.of("type", "string", "description", "Hora de fin del rango preferido, formato HH:mm:ss"),
+                                        "fechaLimite", Map.of("type", "string", "description", "Hasta que fecha le sirve esperar, formato YYYY-MM-DD")
+                                ),
+                                "required", List.of("pacienteId", "medicoId", "diasPreferidos", "horaInicioPreferida", "horaFinPreferida", "fechaLimite"))
                 )
         );
     }
