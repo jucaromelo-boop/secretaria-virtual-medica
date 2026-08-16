@@ -118,4 +118,8 @@ public class CitaService {
                     "El medico con id " + medicoId + " ya tiene una cita en ese horario (considerando el buffer)");
         }
     }
+
+    public List<Cita> buscarCitasEnRango(LocalDateTime desde, LocalDateTime hasta) {
+        return citaRepository.findByFechaHoraBetweenAndEstado(desde, hasta, EstadoCita.PROGRAMADA);
+    }
 }

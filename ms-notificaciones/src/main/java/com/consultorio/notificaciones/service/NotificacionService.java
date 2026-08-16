@@ -2,6 +2,7 @@ package com.consultorio.notificaciones.service;
 
 import com.consultorio.notificaciones.client.CanalWhatsappClient;
 import com.consultorio.notificaciones.client.PacientesClient;
+import com.consultorio.notificaciones.client.dto.CitaDTO;
 import com.consultorio.notificaciones.client.dto.PacienteDTO;
 import com.consultorio.notificaciones.model.EstadoNotificacion;
 import com.consultorio.notificaciones.model.Notificacion;
@@ -77,5 +78,20 @@ public class NotificacionService {
 
     public List<Notificacion> listarPorCita(Long citaId) {
         return notificacionRepository.findByCitaId(citaId);
+    }
+
+    public void enviarRecordatorioSiCorresponde(CitaDTO cita) {
+        if (notificacionRepository.existsByCitaIdAndTipo(cita.getId(), TipoNotificacion.RECORDATORIO)) {
+            return;
+        }
+
+        String mensaje = "Hola, te recordamos tu cita del " + cita.getFechaHora()
+                + ". Si necesitas cambiarla o cancelarla, avisanos por aqui.";
+
+        Notificacion notificacion = new Notificacion(
+                cita.getId(), cita.getPacienteId(), cita.getMedicoId(), TipoNotificacion.RECORDATORIO, mensaje);
+        enviar(notificacion);
+
+        notificarPacientePorWhatsapp(cita.getPacienteId(), mensaje);
     }
 }

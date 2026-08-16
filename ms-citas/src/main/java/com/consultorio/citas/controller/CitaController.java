@@ -70,4 +70,13 @@ public class CitaController {
         Cita cita = citaService.cancelarCita(id, request.getMotivo());
         return new CitaResponse(cita);
     }
+
+    @GetMapping("/rango")
+    public List<CitaResponse> buscarEnRango(
+            @RequestParam("desde") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
+            @RequestParam("hasta") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta) {
+        return citaService.buscarCitasEnRango(desde, hasta).stream()
+                .map(CitaResponse::new)
+                .collect(Collectors.toList());
+    }
 }
