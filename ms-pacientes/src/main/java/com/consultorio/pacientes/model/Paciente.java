@@ -80,6 +80,8 @@ public class Paciente {
     @Column(length = 2000)
     private String notas;
 
+    private String parentesco;
+
     protected Paciente() {
         // constructor vacio requerido por JPA
     }
@@ -170,4 +172,7 @@ public class Paciente {
 
     public String getNotas() { return notas; }
     public void setNotas(String notas) { this.notas = notas; }
+
+    public String getParentesco() { return parentesco; }
+    public void setParentesco(String parentesco) { this.parentesco = parentesco; }
 }

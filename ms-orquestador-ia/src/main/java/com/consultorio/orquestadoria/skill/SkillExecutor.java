@@ -24,7 +24,7 @@ public class SkillExecutor {
         this.citasClient = citasClient;
     }
 
-    public String ejecutar(String nombreSkill, Map<String, Object> input) {
+    public String ejecutar(String nombreSkill, Map<String, Object> input, String telefonoConversacion) {
         try {
             return switch (nombreSkill) {
                 case "buscar_especialidades" -> buscarEspecialidades();
@@ -36,11 +36,32 @@ public class SkillExecutor {
                 case "consultar_agenda_del_dia" -> consultarAgendaDelDia(input);
                 case "reagendar_cita" -> reagendarCita(input);
                 case "cancelar_cita_como_medico" -> cancelarCitaComoMedico(input);
+                case "listar_pacientes_del_telefono" -> listarPacientesDelTelefono(telefonoConversacion);
+                case "registrar_familiar" -> registrarFamiliar(input, telefonoConversacion);
                 default -> "Skill desconocida: " + nombreSkill;
             };
         } catch (Exception ex) {
             return "Ocurrio un error ejecutando la operacion: " + ex.getMessage();
         }
+    }
+
+    private String listarPacientesDelTelefono(String telefono) {
+        List<PacienteDTO> pacientes = pacientesClient.listarPorTelefono(telefono);
+        if (pacientes.isEmpty()) {
+            return "No hay pacientes registrados con este numero todavia.";
+        }
+        return pacientes.stream()
+                .map(p -> "pacienteId=" + p.getId() + ", nombre=" + p.getNombreCompleto()
+                        + ", parentesco=" + (p.getParentesco() != null ? p.getParentesco() : "Titular"))
+                .collect(Collectors.joining("; "));
+    }
+
+    private String registrarFamiliar(Map<String, Object> input, String telefono) {
+        String nombre = (String) input.get("nombreCompleto");
+        String parentesco = (String) input.get("parentesco");
+        PacienteDTO creado = pacientesClient.registrarFamiliar(telefono, nombre, parentesco);
+        return "Familiar registrado exitosamente: pacienteId=" + creado.getId() + ", nombre=" + creado.getNombreCompleto()
+                + ", parentesco=" + creado.getParentesco();
     }
 
     private String buscarEspecialidades() {

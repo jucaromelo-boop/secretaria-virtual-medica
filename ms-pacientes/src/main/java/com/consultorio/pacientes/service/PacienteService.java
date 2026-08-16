@@ -5,10 +5,11 @@ import com.consultorio.pacientes.exception.PacienteNoEncontradoException;
 import com.consultorio.pacientes.model.Paciente;
 import com.consultorio.pacientes.model.TipoDocumento;
 import com.consultorio.pacientes.repository.PacienteRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PacienteService {
@@ -80,23 +81,45 @@ public class PacienteService {
         return pacienteRepository.save(paciente);
     }
 
-    public Optional<Paciente> buscarPorTelefono(String telefono) {
+    // --- Pacientes dependientes / titular por telefono ---
+
+    public List<Paciente> listarPorTelefono(String telefono) {
         return pacienteRepository.findByTelefono(telefono);
     }
 
+    public Optional<Paciente> buscarTitularPorTelefono(String telefono) {
+        return pacienteRepository.findByTelefono(telefono).stream()
+                .filter(p -> p.getParentesco() == null || p.getParentesco().equalsIgnoreCase("Titular"))
+                .findFirst();
+    }
+
     public Paciente registroRapido(String telefono, String nombreCompleto) {
-        Optional<Paciente> existente = pacienteRepository.findByTelefono(telefono);
+        return registrarConParentesco(telefono, nombreCompleto, "Titular");
+    }
+
+    public Paciente registrarFamiliar(String telefono, String nombreCompleto, String parentesco) {
+        return registrarConParentesco(telefono, nombreCompleto, parentesco);
+    }
+
+    private Paciente registrarConParentesco(String telefono, String nombreCompleto, String parentesco) {
+        Optional<Paciente> existente = pacienteRepository.findByTelefono(telefono).stream()
+                .filter(p -> p.getNombreCompleto().equalsIgnoreCase(nombreCompleto))
+                .findFirst();
         if (existente.isPresent()) {
             return existente.get();
         }
 
+        String documentoTemporal = "WA-" + telefono + "-" + nombreCompleto.replaceAll("\\s+", "").toUpperCase();
+
         try {
-            Paciente paciente = new Paciente(nombreCompleto, "WA-" + telefono, TipoDocumento.OTRO);
+            Paciente paciente = new Paciente(nombreCompleto, documentoTemporal, TipoDocumento.OTRO);
             paciente.setTelefono(telefono);
+            paciente.setParentesco(parentesco);
             return pacienteRepository.save(paciente);
-        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
-            // Otra peticion concurrente ya lo registro entre el check y el insert
-            return pacienteRepository.findByTelefono(telefono)
+        } catch (DataIntegrityViolationException ex) {
+            return pacienteRepository.findByTelefono(telefono).stream()
+                    .filter(p -> p.getNombreCompleto().equalsIgnoreCase(nombreCompleto))
+                    .findFirst()
                     .orElseThrow(() -> ex);
         }
     }

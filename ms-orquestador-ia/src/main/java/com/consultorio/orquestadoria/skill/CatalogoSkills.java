@@ -96,6 +96,21 @@ public class CatalogoSkills {
                                         "motivo", Map.of("type", "string", "description", "Motivo de la cancelacion, se le comunicara al paciente")
                                 ),
                                 "required", List.of("citaId", "motivo"))
+                ),
+                new ToolDefinition(
+                        "listar_pacientes_del_telefono",
+                        "Lista todas las personas (titular y familiares) registradas bajo este numero de telefono. Usa esto para preguntar para quien es la cita, o para ver quienes ya estan registrados antes de agendar.",
+                        Map.of("type", "object", "properties", Map.of(), "required", List.of())
+                ),
+                new ToolDefinition(
+                        "registrar_familiar",
+                        "Registra a un familiar (hijo, esposa, padre, etc.) bajo el mismo numero de telefono del titular. Usa esto cuando el paciente quiera agendar una cita para alguien mas y esa persona aun no este registrada.",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "nombreCompleto", Map.of("type", "string", "description", "Nombre completo del familiar"),
+                                        "parentesco", Map.of("type", "string", "description", "Relacion con el titular, ej: Hijo, Hija, Esposa, Esposo, Padre, Madre")
+                                ),
+                                "required", List.of("nombreCompleto", "parentesco"))
                 )
         );
     }

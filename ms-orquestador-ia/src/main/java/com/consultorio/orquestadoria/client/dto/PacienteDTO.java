@@ -5,6 +5,7 @@ public class PacienteDTO {
     private String nombreCompleto;
     private String telefono;
     private boolean activo;
+    private String parentesco;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -14,4 +15,6 @@ public class PacienteDTO {
     public void setTelefono(String telefono) { this.telefono = telefono; }
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
+    public String getParentesco() { return parentesco; }
+    public void setParentesco(String parentesco) { this.parentesco = parentesco; }
 }

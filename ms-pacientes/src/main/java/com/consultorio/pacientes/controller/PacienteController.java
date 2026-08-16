@@ -2,6 +2,7 @@ package com.consultorio.pacientes.controller;
 
 import com.consultorio.pacientes.dto.PacienteRequest;
 import com.consultorio.pacientes.dto.PacienteResponse;
+import com.consultorio.pacientes.dto.RegistroRapidoRequest;
 import com.consultorio.pacientes.model.Paciente;
 import com.consultorio.pacientes.service.PacienteService;
 import jakarta.validation.Valid;
@@ -74,15 +75,27 @@ public class PacienteController {
 
     @GetMapping("/telefono/{telefono}")
     public ResponseEntity<PacienteResponse> buscarPorTelefono(@PathVariable("telefono") String telefono) {
-        return pacienteService.buscarPorTelefono(telefono)
+        return pacienteService.buscarTitularPorTelefono(telefono)
                 .map(p -> ResponseEntity.ok(new PacienteResponse(p)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/registro-rapido")
-    public ResponseEntity<PacienteResponse> registroRapido(@RequestParam("telefono") String telefono,
-                                                           @RequestParam("nombre") String nombre) {
-        Paciente paciente = pacienteService.registroRapido(telefono, nombre);
+    public ResponseEntity<PacienteResponse> registroRapido(@RequestBody RegistroRapidoRequest request) {
+        Paciente paciente = pacienteService.registroRapido(request.getTelefono(), request.getNombre());
+        return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(paciente));
+    }
+
+    @GetMapping("/telefono/{telefono}/todos")
+    public List<PacienteResponse> listarPorTelefono(@PathVariable("telefono") String telefono) {
+        return pacienteService.listarPorTelefono(telefono).stream()
+                .map(PacienteResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    @PostMapping("/familiar")
+    public ResponseEntity<PacienteResponse> registrarFamiliar(@RequestBody RegistroRapidoRequest request) {
+        Paciente paciente = pacienteService.registrarFamiliar(request.getTelefono(), request.getNombre(), request.getParentesco());
         return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(paciente));
     }
 

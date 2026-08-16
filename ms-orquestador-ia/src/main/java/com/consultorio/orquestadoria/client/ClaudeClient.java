@@ -23,7 +23,7 @@ import java.util.Map;
 public class ClaudeClient {
 
     private static final Logger log = LoggerFactory.getLogger(ClaudeClient.class);
-    private static final int MAX_ITERACIONES = 5;
+    private static final int MAX_ITERACIONES = 8;
 
     private final RestTemplate restTemplate;
     private final SkillExecutor skillExecutor;
@@ -42,7 +42,8 @@ public class ClaudeClient {
         this.skillExecutor = skillExecutor;
     }
 
-    public String enviarMensaje(String systemPrompt, List<ClaudeMessage> historial, List<ToolDefinition> tools) {
+    public String enviarMensaje(String systemPrompt, List<ClaudeMessage> historial, List<ToolDefinition> tools,
+                                String telefonoConversacion) {
         List<ClaudeMessage> conversacion = new ArrayList<>(historial);
 
         for (int i = 0; i < MAX_ITERACIONES; i++) {
@@ -68,13 +69,14 @@ public class ClaudeClient {
                 return extraerTexto(response);
             }
 
+            // Claude quiere usar una o mas herramientas
             conversacion.add(new ClaudeMessage("assistant", construirBloquesAssistant(response)));
 
             List<Map<String, Object>> resultadosTools = new ArrayList<>();
             for (ClaudeResponse.ContenidoBloque bloque : response.getContent()) {
                 if ("tool_use".equals(bloque.getType())) {
                     log.info("Ejecutando skill: {} con input: {}", bloque.getName(), bloque.getInput());
-                    String resultado = skillExecutor.ejecutar(bloque.getName(), bloque.getInput());
+                    String resultado = skillExecutor.ejecutar(bloque.getName(), bloque.getInput(), telefonoConversacion);
                     log.info("Resultado de la skill {}: {}", bloque.getName(), resultado);
                     resultadosTools.add(Map.of(
                             "type", "tool_result",
