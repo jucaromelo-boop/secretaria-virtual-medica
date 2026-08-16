@@ -35,15 +35,20 @@ public class Cita {
     @Column(nullable = false)
     private EstadoCita estado = EstadoCita.PROGRAMADA;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoConsulta tipoConsulta = TipoConsulta.PRIMERA_VEZ;
+
     protected Cita() {
         // constructor vacio requerido por JPA
     }
 
-    public Cita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos) {
+    public Cita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos, TipoConsulta tipoConsulta) {
         this.pacienteId = pacienteId;
         this.medicoId = medicoId;
         this.fechaHora = fechaHora;
         this.duracionMinutos = duracionMinutos;
+        this.tipoConsulta = tipoConsulta != null ? tipoConsulta : TipoConsulta.PRIMERA_VEZ;
     }
 
     // Getters y setters
@@ -86,4 +91,8 @@ public class Cita {
     public void setEstado(EstadoCita estado) {
         this.estado = estado;
     }
+
+    public TipoConsulta getTipoConsulta() { return tipoConsulta; }
+
+    public void setTipoConsulta(TipoConsulta tipoConsulta) { this.tipoConsulta = tipoConsulta; }
 }

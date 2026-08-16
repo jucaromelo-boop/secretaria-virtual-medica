@@ -31,7 +31,8 @@ public class CitaController {
                 request.getPacienteId(),
                 request.getMedicoId(),
                 request.getFechaHora(),
-                request.getDuracionMinutos());
+                request.getDuracionMinutos(),
+                request.getTipoConsulta());
         return ResponseEntity.status(HttpStatus.CREATED).body(new CitaResponse(cita));
     }
 

@@ -24,11 +24,11 @@ public class CitasClient {
         this.restTemplate = restTemplate;
     }
 
-    public String crearCita(Long pacienteId, Long medicoId, String fechaHoraIso, Integer duracionMinutos) {
+    public String crearCita(Long pacienteId, Long medicoId, String fechaHoraIso, Integer duracionMinutos, String tipoConsulta) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        CrearCitaDTO dto = new CrearCitaDTO(pacienteId, medicoId, fechaHoraIso, duracionMinutos);
+        CrearCitaDTO dto = new CrearCitaDTO(pacienteId, medicoId, fechaHoraIso, duracionMinutos, tipoConsulta);
         HttpEntity<CrearCitaDTO> entity = new HttpEntity<>(dto, headers);
 
         try {

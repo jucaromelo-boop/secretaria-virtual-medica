@@ -5,6 +5,7 @@ import com.consultorio.orquestadoria.client.dto.MedicoDTO;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import com.consultorio.orquestadoria.client.dto.ConsultorioDTO;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +29,12 @@ public class MedicosClient {
     public List<MedicoDTO> buscarPorEspecialidad(String nombreEspecialidad) {
         MedicoDTO[] resultado = restTemplate.getForObject(
                 BASE_URL + "/medicos/especialidad/" + nombreEspecialidad, MedicoDTO[].class);
+        return resultado != null ? Arrays.asList(resultado) : List.of();
+    }
+
+    public List<ConsultorioDTO> buscarConsultoriosPorMedico(Long medicoId) {
+        ConsultorioDTO[] resultado = restTemplate.getForObject(
+                "http://ms-medicos/api/consultorios/medico/" + medicoId, ConsultorioDTO[].class);
         return resultado != null ? Arrays.asList(resultado) : List.of();
     }
 }

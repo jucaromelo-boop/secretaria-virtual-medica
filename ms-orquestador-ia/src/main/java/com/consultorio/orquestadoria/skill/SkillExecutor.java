@@ -3,10 +3,7 @@ package com.consultorio.orquestadoria.skill;
 import com.consultorio.orquestadoria.client.CitasClient;
 import com.consultorio.orquestadoria.client.MedicosClient;
 import com.consultorio.orquestadoria.client.PacientesClient;
-import com.consultorio.orquestadoria.client.dto.CitaDTO;
-import com.consultorio.orquestadoria.client.dto.EspecialidadDTO;
-import com.consultorio.orquestadoria.client.dto.MedicoDTO;
-import com.consultorio.orquestadoria.client.dto.PacienteDTO;
+import com.consultorio.orquestadoria.client.dto.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -59,8 +56,17 @@ public class SkillExecutor {
         if (medicos.isEmpty()) {
             return "No se encontraron medicos disponibles para la especialidad " + especialidad;
         }
+
         return medicos.stream()
-                .map(m -> "medicoId=" + m.getId() + ", nombre=" + m.getNombreCompleto())
+                .map(m -> {
+                    String info = "medicoId=" + m.getId() + ", nombre=" + m.getNombreCompleto();
+                    List<ConsultorioDTO> consultorios = medicosClient.buscarConsultoriosPorMedico(m.getId());
+                    if (!consultorios.isEmpty()) {
+                        ConsultorioDTO c = consultorios.get(0);
+                        info += ", tarifaConsulta=$" + c.getTarifaConsulta() + ", duracionMinutos=" + c.getDuracionConsultaMinutos();
+                    }
+                    return info;
+                })
                 .collect(Collectors.joining("; "));
     }
 
@@ -88,8 +94,9 @@ public class SkillExecutor {
         String fechaHora = (String) input.get("fechaHora");
         Integer duracion = input.get("duracionMinutos") != null
                 ? ((Number) input.get("duracionMinutos")).intValue() : 30;
+        String tipoConsulta = (String) input.get("tipoConsulta");
 
-        return citasClient.crearCita(pacienteId, medicoId, fechaHora, duracion);
+        return citasClient.crearCita(pacienteId, medicoId, fechaHora, duracion, tipoConsulta);
     }
 
     private String consultarCitasPaciente(Map<String, Object> input) {

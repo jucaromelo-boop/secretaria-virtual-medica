@@ -5,11 +5,13 @@ import com.consultorio.citas.client.PacienteClient;
 import com.consultorio.citas.config.CitasProperties;
 import com.consultorio.citas.dto.MedicoDTO;
 import com.consultorio.citas.dto.PacienteDTO;
+import com.consultorio.citas.event.CitaEventPublisher;
 import com.consultorio.citas.exception.CancelacionNoPermitidaException;
 import com.consultorio.citas.exception.CitaNoEncontradaException;
 import com.consultorio.citas.exception.ConflictoHorarioException;
 import com.consultorio.citas.model.Cita;
 import com.consultorio.citas.model.EstadoCita;
+import com.consultorio.citas.model.TipoConsulta;
 import com.consultorio.citas.repository.CitaRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +28,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import com.consultorio.citas.event.CitaEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class CitaServiceTest {
@@ -76,7 +77,7 @@ class CitaServiceTest {
         when(citaRepository.save(any(Cita.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cita resultado = citaService.crearCita(1L, 1L, fechaHora, 30);
+        Cita resultado = citaService.crearCita(1L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ);
 
         assertThat(resultado).isNotNull();
         assertThat(resultado.getPacienteId()).isEqualTo(1L);
@@ -96,7 +97,7 @@ class CitaServiceTest {
         when(citaRepository.save(any(Cita.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cita resultado = citaService.crearCita(1L, 1L, fechaHora, null);
+        Cita resultado = citaService.crearCita(1L, 1L, fechaHora, null, TipoConsulta.SEGUIMIENTO);
 
         assertThat(resultado.getDuracionMinutos()).isEqualTo(30);
     }
@@ -104,7 +105,7 @@ class CitaServiceTest {
     @Test
     void deberiaLanzarConflictoHorarioCuandoMedicoYaTieneCitaEnEseRango() {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
-        Cita citaExistente = new Cita(99L, 1L, fechaHora, 30);
+        Cita citaExistente = new Cita(99L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ);
 
         when(pacienteClient.obtenerPaciente(1L)).thenReturn(pacienteActivo(1L));
         when(medicoClient.obtenerMedico(1L)).thenReturn(medicoActivo(1L));
@@ -113,7 +114,7 @@ class CitaServiceTest {
                 .thenReturn(List.of(citaExistente));
 
         assertThatThrownBy(() ->
-                citaService.crearCita(1L, 1L, fechaHora, 30))
+                citaService.crearCita(1L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ))
                 .isInstanceOf(ConflictoHorarioException.class);
 
         verify(citaRepository, never()).save(any(Cita.class));
@@ -122,7 +123,7 @@ class CitaServiceTest {
     @Test
     void noDeberiaLanzarConflictoSiLaCitaExistenteEstaCancelada() {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
-        Cita citaCancelada = new Cita(99L, 1L, fechaHora, 30);
+        Cita citaCancelada = new Cita(99L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ);
         citaCancelada.setEstado(EstadoCita.CANCELADA);
 
         when(pacienteClient.obtenerPaciente(1L)).thenReturn(pacienteActivo(1L));
@@ -133,7 +134,7 @@ class CitaServiceTest {
         when(citaRepository.save(any(Cita.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Cita resultado = citaService.crearCita(1L, 1L, fechaHora, 30);
+        Cita resultado = citaService.crearCita(1L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ);
 
         assertThat(resultado).isNotNull();
         verify(citaRepository, times(1)).save(any(Cita.class));
@@ -141,7 +142,7 @@ class CitaServiceTest {
 
     @Test
     void noDeberiaPermitirCancelarConMenosDeLasHorasMinimas() {
-        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusMinutes(30), 30);
+        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusMinutes(30), 30, TipoConsulta.PRIMERA_VEZ);
         when(citaRepository.findById(1L)).thenReturn(Optional.of(cita));
         when(citasProperties.getHorasMinimasAnticipacionCancelacion()).thenReturn(2);
 
@@ -153,7 +154,7 @@ class CitaServiceTest {
 
     @Test
     void deberiaPermitirCancelarConSuficienteAnticipacion() {
-        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusDays(1), 30);
+        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusDays(1), 30, TipoConsulta.PRIMERA_VEZ);
         when(citaRepository.findById(1L)).thenReturn(Optional.of(cita));
         when(citasProperties.getHorasMinimasAnticipacionCancelacion()).thenReturn(2);
         when(citaRepository.save(any(Cita.class)))

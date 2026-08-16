@@ -2,6 +2,7 @@ package com.consultorio.citas.dto;
 
 import com.consultorio.citas.model.Cita;
 import com.consultorio.citas.model.EstadoCita;
+import com.consultorio.citas.model.TipoConsulta;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +14,7 @@ public class CitaResponse {
     private LocalDateTime fechaHora;
     private Integer duracionMinutos;
     private EstadoCita estado;
+    private TipoConsulta tipoConsulta;
 
     public CitaResponse(Cita cita) {
         this.id = cita.getId();
@@ -21,6 +23,7 @@ public class CitaResponse {
         this.fechaHora = cita.getFechaHora();
         this.duracionMinutos = cita.getDuracionMinutos();
         this.estado = cita.getEstado();
+        this.tipoConsulta = cita.getTipoConsulta();
     }
 
     public Long getId() {
@@ -46,4 +49,6 @@ public class CitaResponse {
     public EstadoCita getEstado() {
         return estado;
     }
+
+    public TipoConsulta getTipoConsulta() { return tipoConsulta; }
 }

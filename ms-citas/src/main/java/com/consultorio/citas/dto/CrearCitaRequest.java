@@ -1,5 +1,6 @@
 package com.consultorio.citas.dto;
 
+import com.consultorio.citas.model.TipoConsulta;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +18,8 @@ public class CrearCitaRequest {
     @NotNull(message = "La fecha y hora son obligatorias")
     @Future(message = "La fecha de la cita debe ser futura")
     private LocalDateTime fechaHora;
+
+    private TipoConsulta tipoConsulta;
 
     private Integer duracionMinutos;
 
@@ -51,4 +54,7 @@ public class CrearCitaRequest {
     public void setDuracionMinutos(Integer duracionMinutos) {
         this.duracionMinutos = duracionMinutos;
     }
+
+    public TipoConsulta getTipoConsulta() { return tipoConsulta; }
+    public void setTipoConsulta(TipoConsulta tipoConsulta) { this.tipoConsulta = tipoConsulta; }
 }

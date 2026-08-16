@@ -22,6 +22,8 @@ import com.consultorio.citas.dto.MedicoDTO;
 import com.consultorio.citas.exception.MedicoNoValidoException;
 import com.consultorio.citas.event.CitaEventPublisher;
 
+import com.consultorio.citas.model.TipoConsulta;
+
 @Service
 public class CitaService {
 
@@ -41,7 +43,7 @@ public class CitaService {
         this.citaEventPublisher = citaEventPublisher;
     }
 
-    public Cita crearCita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos) {
+    public Cita crearCita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos, TipoConsulta tipoConsulta) {
         PacienteDTO paciente = pacienteClient.obtenerPaciente(pacienteId);
         if (!paciente.isActivo()) {
             throw new PacienteNoValidoException(pacienteId);
@@ -56,7 +58,7 @@ public class CitaService {
 
         validarDisponibilidad(medicoId, fechaHora, duracion);
 
-        Cita cita = new Cita(pacienteId, medicoId, fechaHora, duracion);
+        Cita cita = new Cita(pacienteId, medicoId, fechaHora, duracion, tipoConsulta);
         Cita citaGuardada = citaRepository.save(cita);
 
         citaEventPublisher.publicarCitaCreada(citaGuardada.getId(), pacienteId, medicoId, fechaHora);

@@ -4,6 +4,7 @@ import com.consultorio.citas.exception.CancelacionNoPermitidaException;
 import com.consultorio.citas.exception.CitaNoEncontradaException;
 import com.consultorio.citas.exception.ConflictoHorarioException;
 import com.consultorio.citas.model.Cita;
+import com.consultorio.citas.model.TipoConsulta;
 import com.consultorio.citas.service.CitaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -36,9 +37,9 @@ class CitaControllerTest {
     @Test
     void deberiaRetornar201CuandoSeCreaCitaValida() throws Exception {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
-        Cita cita = new Cita(1L, 1L, fechaHora, 30);
+        Cita cita = new Cita(1L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ);
 
-        when(citaService.crearCita(anyLong(), anyLong(), any(), any()))
+        when(citaService.crearCita(anyLong(), anyLong(), any(), any(), any()))
                 .thenReturn(cita);
 
         String body = """
@@ -46,7 +47,8 @@ class CitaControllerTest {
                   "pacienteId": 1,
                   "medicoId": 1,
                   "fechaHora": "%s",
-                  "duracionMinutos": 30
+                  "duracionMinutos": 30,
+                  "tipoConsulta": "PRIMERA_VEZ"
                 }
                 """.formatted(fechaHora.toString());
 
@@ -75,7 +77,7 @@ class CitaControllerTest {
 
     @Test
     void deberiaRetornar409CuandoHayConflictoDeHorario() throws Exception {
-        when(citaService.crearCita(anyLong(), anyLong(), any(), any()))
+        when(citaService.crearCita(anyLong(), anyLong(), any(), any(), any()))
                 .thenThrow(new ConflictoHorarioException("El medico ya tiene una cita en ese horario"));
 
         String body = """
@@ -83,7 +85,8 @@ class CitaControllerTest {
                   "pacienteId": 1,
                   "medicoId": 1,
                   "fechaHora": "%s",
-                  "duracionMinutos": 30
+                  "duracionMinutos": 30,
+                  "tipoConsulta": "PRIMERA_VEZ"
                 }
                 """.formatted(LocalDateTime.now().plusDays(1));
 
@@ -117,8 +120,8 @@ class CitaControllerTest {
 
     @Test
     void deberiaListarTodasLasCitas() throws Exception {
-        Cita cita1 = new Cita(1L, 1L, LocalDateTime.now().plusDays(1), 30);
-        Cita cita2 = new Cita(2L, 2L, LocalDateTime.now().plusDays(2), 45);
+        Cita cita1 = new Cita(1L, 1L, LocalDateTime.now().plusDays(1), 30, TipoConsulta.PRIMERA_VEZ);
+        Cita cita2 = new Cita(2L, 2L, LocalDateTime.now().plusDays(2), 45, TipoConsulta.SEGUIMIENTO);
 
         when(citaService.listarTodas()).thenReturn(List.of(cita1, cita2));
 
