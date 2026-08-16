@@ -21,7 +21,8 @@ public class OrquestadorController {
 
     @PostMapping("/mensaje")
     public MensajeResponse procesarMensaje(@Valid @RequestBody MensajeRequest request) {
-        String respuesta = orquestadorService.responder(request.getTexto(), request.getNumeroTelefono());
+        String respuesta = orquestadorService.responder(
+                request.getTexto(), request.getNumeroTelefono(), request.getNumeroDestino());
         return new MensajeResponse(respuesta);
     }
 }

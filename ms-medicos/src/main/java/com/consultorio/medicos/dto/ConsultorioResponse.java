@@ -15,6 +15,7 @@ public class ConsultorioResponse {
     private BigDecimal tarifaConsulta;
     private Integer duracionConsultaMinutos;
     private boolean activo;
+    private String numeroWhatsapp;
 
     public ConsultorioResponse(Consultorio c) {
         this.id = c.getId();
@@ -27,6 +28,7 @@ public class ConsultorioResponse {
         this.tarifaConsulta = c.getTarifaConsulta();
         this.duracionConsultaMinutos = c.getDuracionConsultaMinutos();
         this.activo = c.isActivo();
+        this.numeroWhatsapp = c.getNumeroWhatsapp();
     }
 
     public Long getId() { return id; }
@@ -39,4 +41,5 @@ public class ConsultorioResponse {
     public BigDecimal getTarifaConsulta() { return tarifaConsulta; }
     public Integer getDuracionConsultaMinutos() { return duracionConsultaMinutos; }
     public boolean isActivo() { return activo; }
+    public String getNumeroWhatsapp() { return numeroWhatsapp; }
 }

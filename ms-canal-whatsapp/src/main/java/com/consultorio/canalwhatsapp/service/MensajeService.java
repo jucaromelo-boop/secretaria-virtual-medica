@@ -21,6 +21,6 @@ public class MensajeService {
         log.info("Mensaje recibido de {} ({}): {}",
                 mensaje.getNombrePerfil(), mensaje.getNumeroTelefono(), mensaje.getTexto());
 
-        return orquestadorClient.obtenerRespuesta(mensaje.getTexto(), mensaje.getNumeroTelefono());
+        return orquestadorClient.obtenerRespuesta(mensaje.getTexto(), mensaje.getNumeroTelefono(), mensaje.getNumeroDestino());
     }
 }

@@ -40,6 +40,9 @@ public class Consultorio {
     @Column(nullable = false)
     private boolean activo = true;
 
+    @Column(unique = true)
+    private String numeroWhatsapp;
+
     protected Consultorio() {
     }
 
@@ -79,4 +82,7 @@ public class Consultorio {
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
+
+    public String getNumeroWhatsapp() { return numeroWhatsapp; }
+    public void setNumeroWhatsapp(String numeroWhatsapp) { this.numeroWhatsapp = numeroWhatsapp; }
 }

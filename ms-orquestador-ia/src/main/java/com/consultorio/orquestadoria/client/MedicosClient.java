@@ -9,6 +9,7 @@ import com.consultorio.orquestadoria.client.dto.ConsultorioDTO;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class MedicosClient {
@@ -36,5 +37,15 @@ public class MedicosClient {
         ConsultorioDTO[] resultado = restTemplate.getForObject(
                 "http://ms-medicos/api/consultorios/medico/" + medicoId, ConsultorioDTO[].class);
         return resultado != null ? Arrays.asList(resultado) : List.of();
+    }
+
+    public Optional<ConsultorioDTO> buscarConsultorioPorNumeroWhatsapp(String numeroWhatsapp) {
+        try {
+            ConsultorioDTO consultorio = restTemplate.getForObject(
+                    BASE_URL + "/consultorios/whatsapp/" + numeroWhatsapp, ConsultorioDTO.class);
+            return Optional.ofNullable(consultorio);
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound ex) {
+            return Optional.empty();
+        }
     }
 }

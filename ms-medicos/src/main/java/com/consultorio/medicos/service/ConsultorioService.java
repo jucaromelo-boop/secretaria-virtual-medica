@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ConsultorioService {
@@ -48,5 +49,15 @@ public class ConsultorioService {
         Consultorio consultorio = buscarPorId(id);
         consultorio.setActivo(false);
         consultorioRepository.save(consultorio);
+    }
+
+    public Optional<Consultorio> buscarPorNumeroWhatsapp(String numeroWhatsapp) {
+        return consultorioRepository.findByNumeroWhatsapp(numeroWhatsapp);
+    }
+
+    public Consultorio asignarNumeroWhatsapp(Long consultorioId, String numeroWhatsapp) {
+        Consultorio consultorio = buscarPorId(consultorioId);
+        consultorio.setNumeroWhatsapp(numeroWhatsapp);
+        return consultorioRepository.save(consultorio);
     }
 }

@@ -22,19 +22,22 @@ public class WhatsappWebhookController {
     public String recibirMensaje(
             @RequestParam("From") String from,
             @RequestParam("Body") String body,
-            @RequestParam(value = "ProfileName", required = false) String profileName) {
+            @RequestParam(value = "ProfileName", required = false) String profileName,
+            @RequestParam("To") String to) {
 
         String numeroLimpio = from.replace("whatsapp:", "");
+        String numeroDestinoLimpio = to.replace("whatsapp:", "");
+
         MensajeEntrante mensaje = new MensajeEntrante(
-                numeroLimpio, body, profileName != null ? profileName : "Paciente");
+                numeroLimpio, body, profileName != null ? profileName : "Paciente", numeroDestinoLimpio);
 
         String respuesta = mensajeService.procesarMensaje(mensaje);
 
         return """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <Response>
-                    <Message>%s</Message>
-                </Response>
-                """.formatted(respuesta);
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Response>
+                <Message>%s</Message>
+            </Response>
+            """.formatted(respuesta);
     }
 }

@@ -53,4 +53,16 @@ public class ConsultorioController {
         consultorioService.desactivarConsultorio(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/whatsapp/{numero}")
+    public ResponseEntity<ConsultorioResponse> buscarPorNumeroWhatsapp(@PathVariable("numero") String numero) {
+        return consultorioService.buscarPorNumeroWhatsapp(numero)
+                .map(c -> ResponseEntity.ok(new ConsultorioResponse(c)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}/whatsapp")
+    public ConsultorioResponse asignarNumeroWhatsapp(@PathVariable("id") Long id, @RequestParam("numero") String numero) {
+        return new ConsultorioResponse(consultorioService.asignarNumeroWhatsapp(id, numero));
+    }
 }
