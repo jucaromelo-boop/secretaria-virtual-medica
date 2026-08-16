@@ -60,4 +60,40 @@ public class CitasClient {
             return "No se pudo cancelar la cita: " + ex.getResponseBodyAsString();
         }
     }
+
+    public List<CitaDTO> consultarDisponibilidad(Long medicoId, String desde, String hasta) {
+        String url = BASE_URL + "/disponibilidad?medicoId=" + medicoId + "&desde=" + desde + "&hasta=" + hasta;
+        CitaDTO[] resultado = restTemplate.getForObject(url, CitaDTO[].class);
+        return resultado != null ? Arrays.asList(resultado) : List.of();
+    }
+
+    public String reagendarCita(Long citaId, String nuevaFechaHora) {
+        // Primero obtenemos los datos de la cita original
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
+            CitaDTO citaOriginal = restTemplate.getForObject(BASE_URL + "/" + citaId, CitaDTO.class);
+            if (citaOriginal == null) {
+                return "No se encontro la cita con id " + citaId;
+            }
+
+            // Cancelamos la cita original
+            String bodyCancel = "{\"motivo\":\"Reagendada por el medico\"}";
+            HttpEntity<String> entityCancel = new HttpEntity<>(bodyCancel, headers);
+            restTemplate.exchange(BASE_URL + "/" + citaId + "/cancelar", org.springframework.http.HttpMethod.PUT,
+                    entityCancel, CitaDTO.class);
+
+            // Creamos la nueva cita con la nueva fecha
+            CrearCitaDTO nuevaDto = new CrearCitaDTO(citaOriginal.getPacienteId(), citaOriginal.getMedicoId(),
+                    nuevaFechaHora, citaOriginal.getDuracionMinutos(), citaOriginal.getEstado());
+            HttpEntity<CrearCitaDTO> entityCrear = new HttpEntity<>(nuevaDto, headers);
+            CitaDTO nuevaCita = restTemplate.postForObject(BASE_URL, entityCrear, CitaDTO.class);
+
+            return "Cita reagendada exitosamente. Nueva cita id=" + (nuevaCita != null ? nuevaCita.getId() : "desconocido")
+                    + " para el " + nuevaFechaHora;
+        } catch (HttpClientErrorException ex) {
+            return "No se pudo reagendar la cita: " + ex.getResponseBodyAsString();
+        }
+    }
 }

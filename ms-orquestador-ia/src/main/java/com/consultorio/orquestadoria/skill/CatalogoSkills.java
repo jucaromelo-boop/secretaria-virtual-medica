@@ -66,6 +66,36 @@ public class CatalogoSkills {
                                         "motivo", Map.of("type", "string", "description", "Motivo de la cancelacion")
                                 ),
                                 "required", List.of("citaId"))
+                ),
+                new ToolDefinition(
+                        "consultar_agenda_del_dia",
+                        "Muestra las citas programadas de un medico para un dia especifico. Usa esto SOLO si quien escribe es el medico (no un paciente).",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "medicoId", Map.of("type", "integer", "description", "Id del medico"),
+                                        "fecha", Map.of("type", "string", "description", "Fecha en formato ISO, ej: 2026-08-20")
+                                ),
+                                "required", List.of("medicoId", "fecha"))
+                ),
+                new ToolDefinition(
+                        "reagendar_cita",
+                        "Cambia la fecha/hora de una cita existente. Usa esto SOLO si quien escribe es el medico. Cancela la cita anterior y crea una nueva, notificando automaticamente al paciente.",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "citaId", Map.of("type", "integer", "description", "Id de la cita a reagendar"),
+                                        "nuevaFechaHora", Map.of("type", "string", "description", "Nueva fecha y hora en formato ISO")
+                                ),
+                                "required", List.of("citaId", "nuevaFechaHora"))
+                ),
+                new ToolDefinition(
+                        "cancelar_cita_como_medico",
+                        "Cancela una cita y notifica automaticamente al paciente. Usa esto SOLO si quien escribe es el medico.",
+                        Map.of("type", "object",
+                                "properties", Map.of(
+                                        "citaId", Map.of("type", "integer", "description", "Id de la cita a cancelar"),
+                                        "motivo", Map.of("type", "string", "description", "Motivo de la cancelacion, se le comunicara al paciente")
+                                ),
+                                "required", List.of("citaId", "motivo"))
                 )
         );
     }

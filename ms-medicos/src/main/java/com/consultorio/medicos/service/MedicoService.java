@@ -9,6 +9,7 @@ import com.consultorio.medicos.repository.MedicoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -88,5 +89,9 @@ public class MedicoService {
         Medico medico = buscarPorId(id);
         medico.setActivo(false);
         medicoRepository.save(medico);
+    }
+
+    public Optional<Medico> buscarPorTelefonoPersonal(String telefono) {
+        return medicoRepository.findByTelefonoPersonal(telefono);
     }
 }

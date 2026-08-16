@@ -88,4 +88,19 @@ public class MedicoController {
         medicoService.desactivarMedico(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/telefono/{telefono}")
+    public ResponseEntity<MedicoResponse> buscarPorTelefono(@PathVariable("telefono") String telefono) {
+        return medicoService.buscarPorTelefonoPersonal(telefono)
+                .map(m -> ResponseEntity.ok(new MedicoResponse(m)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}/telefono")
+    public MedicoResponse actualizarTelefono(@PathVariable("id") Long id, @RequestParam("telefono") String telefono) {
+        Medico medico = medicoService.buscarPorId(id);
+        medico.setTelefonoPersonal(telefono);
+        return new MedicoResponse(medicoService.actualizarPerfil(id, medico.getBiografia(), medico.getFotoUrl(),
+                medico.getIdiomas(), telefono, medico.getEmail()));
+    }
 }

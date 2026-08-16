@@ -33,6 +33,9 @@ public class SkillExecutor {
                 case "crear_cita" -> crearCita(input);
                 case "consultar_citas_paciente" -> consultarCitasPaciente(input);
                 case "cancelar_cita" -> cancelarCita(input);
+                case "consultar_agenda_del_dia" -> consultarAgendaDelDia(input);
+                case "reagendar_cita" -> reagendarCita(input);
+                case "cancelar_cita_como_medico" -> cancelarCitaComoMedico(input);
                 default -> "Skill desconocida: " + nombreSkill;
             };
         } catch (Exception ex) {
@@ -115,6 +118,39 @@ public class SkillExecutor {
     private String cancelarCita(Map<String, Object> input) {
         Long citaId = ((Number) input.get("citaId")).longValue();
         String motivo = input.get("motivo") != null ? (String) input.get("motivo") : "No especificado";
+
+        return citasClient.cancelarCita(citaId, motivo);
+    }
+
+    private String consultarAgendaDelDia(Map<String, Object> input) {
+        Long medicoId = ((Number) input.get("medicoId")).longValue();
+        String fecha = (String) input.get("fecha");
+
+        String desde = fecha + "T00:00:00";
+        String hasta = fecha + "T23:59:59";
+
+        List<CitaDTO> citas = citasClient.consultarDisponibilidad(medicoId, desde, hasta);
+
+        if (citas.isEmpty()) {
+            return "No hay citas programadas para ese dia.";
+        }
+
+        return citas.stream()
+                .map(c -> "citaId=" + c.getId() + ", hora=" + c.getFechaHora() + ", pacienteId=" + c.getPacienteId()
+                        + ", estado=" + c.getEstado())
+                .collect(Collectors.joining("; "));
+    }
+
+    private String reagendarCita(Map<String, Object> input) {
+        Long citaId = ((Number) input.get("citaId")).longValue();
+        String nuevaFechaHora = (String) input.get("nuevaFechaHora");
+
+        return citasClient.reagendarCita(citaId, nuevaFechaHora);
+    }
+
+    private String cancelarCitaComoMedico(Map<String, Object> input) {
+        Long citaId = ((Number) input.get("citaId")).longValue();
+        String motivo = (String) input.get("motivo");
 
         return citasClient.cancelarCita(citaId, motivo);
     }

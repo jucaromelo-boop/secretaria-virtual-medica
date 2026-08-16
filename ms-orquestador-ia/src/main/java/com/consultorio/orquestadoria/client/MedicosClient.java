@@ -48,4 +48,13 @@ public class MedicosClient {
             return Optional.empty();
         }
     }
+
+    public Optional<MedicoDTO> buscarPorTelefono(String telefono) {
+        try {
+            MedicoDTO medico = restTemplate.getForObject(BASE_URL + "/medicos/telefono/" + telefono, MedicoDTO.class);
+            return Optional.ofNullable(medico);
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound ex) {
+            return Optional.empty();
+        }
+    }
 }
