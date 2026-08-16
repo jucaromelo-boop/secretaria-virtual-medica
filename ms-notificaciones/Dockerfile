@@ -10,6 +10,8 @@ COPY ms-citas/pom.xml ms-citas/
 COPY ms-pacientes/pom.xml ms-pacientes/
 COPY ms-medicos/pom.xml ms-medicos/
 COPY ms-notificaciones/pom.xml ms-notificaciones/
+COPY ms-canal-whatsapp/pom.xml ms-canal-whatsapp/
+COPY ms-orquestador-ia/pom.xml ms-orquestador-ia/
 
 RUN mvn -pl ms-notificaciones -am dependency:go-offline -B
 
