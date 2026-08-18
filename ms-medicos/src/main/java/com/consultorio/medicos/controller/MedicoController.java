@@ -103,4 +103,19 @@ public class MedicoController {
         return new MedicoResponse(medicoService.actualizarPerfil(id, medico.getBiografia(), medico.getFotoUrl(),
                 medico.getIdiomas(), telefono, medico.getEmail()));
     }
+
+    @GetMapping("/paginado")
+    public ResponseEntity<org.springframework.data.domain.Page<MedicoResponse>> listarPaginado(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sort", defaultValue = "nombreCompleto") String sort) {
+
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                page, size, org.springframework.data.domain.Sort.by(sort));
+
+        org.springframework.data.domain.Page<MedicoResponse> resultado = medicoService.listarPaginado(pageable)
+                .map(MedicoResponse::new);
+
+        return ResponseEntity.ok(resultado);
+    }
 }

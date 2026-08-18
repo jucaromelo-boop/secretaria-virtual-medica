@@ -100,4 +100,19 @@ public class CitaController {
                 .map(CitaResponse::new)
                 .collect(Collectors.toList());
     }
+
+    @GetMapping("/paginado")
+    public ResponseEntity<org.springframework.data.domain.Page<CitaResponse>> listarPaginado(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sort", defaultValue = "fechaHora") String sort) {
+
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                page, size, org.springframework.data.domain.Sort.by(sort));
+
+        org.springframework.data.domain.Page<CitaResponse> resultado = citaService.listarPaginado(pageable)
+                .map(CitaResponse::new);
+
+        return ResponseEntity.ok(resultado);
+    }
 }

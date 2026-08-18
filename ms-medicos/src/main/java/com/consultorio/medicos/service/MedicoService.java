@@ -94,4 +94,8 @@ public class MedicoService {
     public Optional<Medico> buscarPorTelefonoPersonal(String telefono) {
         return medicoRepository.findByTelefonoPersonal(telefono);
     }
+
+    public org.springframework.data.domain.Page<Medico> listarPaginado(org.springframework.data.domain.Pageable pageable) {
+        return medicoRepository.findByActivoTrue(pageable);
+    }
 }

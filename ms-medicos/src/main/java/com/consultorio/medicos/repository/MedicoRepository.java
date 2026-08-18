@@ -13,4 +13,5 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
     List<Medico> findByEspecialidadPrincipal_NombreIgnoreCaseAndActivoTrue(String nombreEspecialidad);
     boolean existsByCedulaProfesional(String cedulaProfesional);
     Optional<Medico> findByTelefonoPersonal(String telefonoPersonal);
+    org.springframework.data.domain.Page<Medico> findByActivoTrue(org.springframework.data.domain.Pageable pageable);
 }

@@ -27,6 +27,10 @@ public class PacienteService {
         return pacienteRepository.save(paciente);
     }
 
+    public org.springframework.data.domain.Page<Paciente> listarPaginado(org.springframework.data.domain.Pageable pageable) {
+        return pacienteRepository.findByActivoTrue(pageable);
+    }
+
     public List<Paciente> listarActivos() {
         return pacienteRepository.findByActivoTrue();
     }
@@ -123,4 +127,6 @@ public class PacienteService {
                     .orElseThrow(() -> ex);
         }
     }
+
+
 }

@@ -19,4 +19,6 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
     List<Paciente> findByTelefono(String telefono);
 
 
+    org.springframework.data.domain.Page<Paciente> findByActivoTrue(org.springframework.data.domain.Pageable pageable);
+
 }

@@ -122,4 +122,8 @@ public class CitaService {
     public List<Cita> buscarCitasEnRango(LocalDateTime desde, LocalDateTime hasta) {
         return citaRepository.findByFechaHoraBetweenAndEstado(desde, hasta, EstadoCita.PROGRAMADA);
     }
+
+    public org.springframework.data.domain.Page<Cita> listarPaginado(org.springframework.data.domain.Pageable pageable) {
+        return citaRepository.findAll(pageable);
+    }
 }

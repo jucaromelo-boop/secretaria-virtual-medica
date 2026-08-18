@@ -99,6 +99,21 @@ public class PacienteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(paciente));
     }
 
+    @GetMapping("/paginado")
+    public ResponseEntity<org.springframework.data.domain.Page<PacienteResponse>> listarPaginado(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sort", defaultValue = "nombreCompleto") String sort) {
+
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                page, size, org.springframework.data.domain.Sort.by(sort));
+
+        org.springframework.data.domain.Page<PacienteResponse> resultado = pacienteService.listarPaginado(pageable)
+                .map(PacienteResponse::new);
+
+        return ResponseEntity.ok(resultado);
+    }
+
     private Paciente mapearARequest(PacienteRequest request) {
         Paciente paciente = new Paciente(
                 request.getNombreCompleto(),
