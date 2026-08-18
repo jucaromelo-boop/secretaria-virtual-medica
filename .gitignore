@@ -17,7 +17,8 @@ Thumbs.db
 
 # Variables de entorno / secretos (nunca subir credenciales)
 .env
-*.env.local
+.env.local
+*.env
 
 # Compilados
 *.class
