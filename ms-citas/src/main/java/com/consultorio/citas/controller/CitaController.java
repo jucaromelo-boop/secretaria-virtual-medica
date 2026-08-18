@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.consultorio.citas.idempotencia.IdempotenciaCache;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,20 +21,40 @@ import java.util.stream.Collectors;
 public class CitaController {
 
     private final CitaService citaService;
+    private final IdempotenciaCache idempotenciaCache;
 
-    public CitaController(CitaService citaService) {
+    public CitaController(CitaService citaService, IdempotenciaCache idempotenciaCache) {
+
         this.citaService = citaService;
+        this.idempotenciaCache= idempotenciaCache;
     }
 
     @PostMapping
-    public ResponseEntity<CitaResponse> crearCita(@Valid @RequestBody CrearCitaRequest request) {
+    public ResponseEntity<CitaResponse> crearCita(
+            @Valid @RequestBody CrearCitaRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+
+        if (idempotencyKey != null) {
+            Object cacheado = idempotenciaCache.obtener(idempotencyKey);
+            if (cacheado != null) {
+                return ResponseEntity.status(HttpStatus.CREATED).body((CitaResponse) cacheado);
+            }
+        }
+
         Cita cita = citaService.crearCita(
                 request.getPacienteId(),
                 request.getMedicoId(),
                 request.getFechaHora(),
                 request.getDuracionMinutos(),
                 request.getTipoConsulta());
-        return ResponseEntity.status(HttpStatus.CREATED).body(new CitaResponse(cita));
+
+        CitaResponse response = new CitaResponse(cita);
+
+        if (idempotencyKey != null) {
+            idempotenciaCache.guardar(idempotencyKey, response);
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping

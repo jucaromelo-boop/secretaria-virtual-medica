@@ -28,6 +28,9 @@ public class CitasClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        String idempotencyKey = "cita-" + pacienteId + "-" + medicoId + "-" + fechaHoraIso;
+        headers.set("Idempotency-Key", idempotencyKey);
+
         CrearCitaDTO dto = new CrearCitaDTO(pacienteId, medicoId, fechaHoraIso, duracionMinutos, tipoConsulta);
         HttpEntity<CrearCitaDTO> entity = new HttpEntity<>(dto, headers);
 
