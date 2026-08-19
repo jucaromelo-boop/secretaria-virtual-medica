@@ -12,6 +12,11 @@ spring:
           # ej: http://localhost:8080/ms-citas/** -> se envia al microservicio ms-citas
           enabled: true
           lower-case-service-id: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/consultorio/protocol/openid-connect/certs
 
 eureka:
   client:
