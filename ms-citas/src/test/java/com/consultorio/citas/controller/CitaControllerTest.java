@@ -34,6 +34,9 @@ class CitaControllerTest {
     @MockBean
     private CitaService citaService;
 
+    @MockBean
+    private com.consultorio.citas.idempotencia.IdempotenciaCache idempotenciaCache;
+
     @Test
     void deberiaRetornar201CuandoSeCreaCitaValida() throws Exception {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
