@@ -9,6 +9,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     ports:
       - "8091:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
     networks:
       - consultorio-net
 
@@ -173,3 +175,4 @@ networks:
 
 volumes:
   postgres_data:
+  keycloak_data:
