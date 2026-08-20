@@ -3,14 +3,19 @@ package com.consultorio.citas.controller;
 import com.consultorio.citas.dto.CancelarCitaRequest;
 import com.consultorio.citas.dto.CitaResponse;
 import com.consultorio.citas.dto.CrearCitaRequest;
+import com.consultorio.citas.idempotencia.IdempotenciaCache;
 import com.consultorio.citas.model.Cita;
 import com.consultorio.citas.service.CitaService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import com.consultorio.citas.idempotencia.IdempotenciaCache;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,11 +29,11 @@ public class CitaController {
     private final IdempotenciaCache idempotenciaCache;
 
     public CitaController(CitaService citaService, IdempotenciaCache idempotenciaCache) {
-
         this.citaService = citaService;
-        this.idempotenciaCache= idempotenciaCache;
+        this.idempotenciaCache = idempotenciaCache;
     }
 
+    @PreAuthorize("hasAnyRole('PATIENT','RECEPTIONIST','DOCTOR','CLINIC_ADMIN','SERVICE')")
     @PostMapping
     public ResponseEntity<CitaResponse> crearCita(
             @Valid @RequestBody CrearCitaRequest request,
@@ -57,6 +62,7 @@ public class CitaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PLATFORM_ADMIN')")
     @GetMapping
     public List<CitaResponse> listarTodas() {
         return citaService.listarTodas().stream()
@@ -64,11 +70,13 @@ public class CitaController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping("/{id}")
     public CitaResponse buscarPorId(@PathVariable("id") Long id) {
         return new CitaResponse(citaService.buscarPorId(id));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping("/paciente/{pacienteId}")
     public List<CitaResponse> listarPorPaciente(@PathVariable("pacienteId") Long pacienteId) {
         return citaService.listarPorPaciente(pacienteId).stream()
@@ -76,6 +84,7 @@ public class CitaController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping("/disponibilidad")
     public List<CitaResponse> buscarDisponibilidad(
             @RequestParam("medicoId") Long medicoId,
@@ -86,12 +95,14 @@ public class CitaController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @PutMapping("/{id}/cancelar")
     public CitaResponse cancelarCita(@PathVariable("id") Long id, @RequestBody CancelarCitaRequest request) {
         Cita cita = citaService.cancelarCita(id, request.getMotivo());
         return new CitaResponse(cita);
     }
 
+    @PreAuthorize("hasAnyRole('SERVICE','PLATFORM_ADMIN')")
     @GetMapping("/rango")
     public List<CitaResponse> buscarEnRango(
             @RequestParam("desde") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
@@ -101,17 +112,15 @@ public class CitaController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PLATFORM_ADMIN')")
     @GetMapping("/paginado")
-    public ResponseEntity<org.springframework.data.domain.Page<CitaResponse>> listarPaginado(
+    public ResponseEntity<Page<CitaResponse>> listarPaginado(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "sort", defaultValue = "fechaHora") String sort) {
 
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
-                page, size, org.springframework.data.domain.Sort.by(sort));
-
-        org.springframework.data.domain.Page<CitaResponse> resultado = citaService.listarPaginado(pageable)
-                .map(CitaResponse::new);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        Page<CitaResponse> resultado = citaService.listarPaginado(pageable).map(CitaResponse::new);
 
         return ResponseEntity.ok(resultado);
     }

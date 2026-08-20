@@ -7,6 +7,7 @@ import com.consultorio.citas.service.ListaEsperaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ public class ListaEsperaController {
         this.listaEsperaService = listaEsperaService;
     }
 
+    @PreAuthorize("hasAnyRole('PATIENT','RECEPTIONIST','SERVICE')")
     @PostMapping
     public ResponseEntity<ListaEsperaResponse> registrar(@Valid @RequestBody ListaEsperaRequest request) {
         ListaEspera entrada = listaEsperaService.registrar(
@@ -31,6 +33,7 @@ public class ListaEsperaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ListaEsperaResponse(entrada));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping("/paciente/{pacienteId}")
     public List<ListaEsperaResponse> listarPorPaciente(@PathVariable("pacienteId") Long pacienteId) {
         return listaEsperaService.listarPorPaciente(pacienteId).stream()
@@ -38,12 +41,14 @@ public class ListaEsperaController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('PATIENT','RECEPTIONIST','SERVICE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelar(@PathVariable("id") Long id) {
         listaEsperaService.cancelar(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyRole('SERVICE')")
     @GetMapping("/candidatos")
     public List<ListaEsperaResponse> buscarCandidatos(
             @RequestParam("medicoId") Long medicoId,
@@ -54,20 +59,25 @@ public class ListaEsperaController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('SERVICE')")
     @PutMapping("/{id}/ofrecida")
     public ResponseEntity<Void> marcarOfrecida(@PathVariable("id") Long id) {
         listaEsperaService.marcarOfrecida(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyRole('SERVICE','DOCTOR','CLINIC_ADMIN')")
     @PutMapping("/{id}/ocupada")
     public ResponseEntity<Void> marcarOcupada(@PathVariable("id") Long id) {
         listaEsperaService.marcarOcupada(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PLATFORM_ADMIN')")
     @GetMapping("/{id}")
     public ListaEsperaResponse buscarPorId(@PathVariable("id") Long id) {
         return new ListaEsperaResponse(listaEsperaService.buscarPorId(id));
     }
+
+
 }
