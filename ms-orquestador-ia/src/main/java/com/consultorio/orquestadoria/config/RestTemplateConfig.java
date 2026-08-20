@@ -15,7 +15,9 @@ public class RestTemplateConfig {
 
     @Bean("restTemplateInterno")
     @LoadBalanced
-    public RestTemplate restTemplateInterno() {
-        return new RestTemplate();
+    public RestTemplate restTemplateInterno(ServiceAuthInterceptor serviceAuthInterceptor) {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add(serviceAuthInterceptor);
+        return restTemplate;
     }
 }
