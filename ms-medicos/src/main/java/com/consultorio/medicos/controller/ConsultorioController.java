@@ -6,6 +6,7 @@ import com.consultorio.medicos.service.ConsultorioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class ConsultorioController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN')")
     public ResponseEntity<ConsultorioResponse> crear(@Valid @RequestBody ConsultorioRequest request) {
         var consultorio = consultorioService.crearConsultorio(
                 request.getMedicoId(), request.getNombreConsultorio(), request.getDireccion(),
@@ -30,6 +32,7 @@ public class ConsultorioController {
     }
 
     @GetMapping("/medico/{medicoId}")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     public List<ConsultorioResponse> listarPorMedico(@PathVariable("medicoId") Long medicoId) {
         return consultorioService.listarPorMedico(medicoId).stream()
                 .map(ConsultorioResponse::new)
@@ -37,6 +40,7 @@ public class ConsultorioController {
     }
 
     @GetMapping("/ciudad/{ciudad}")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     public List<ConsultorioResponse> buscarPorCiudad(@PathVariable("ciudad") String ciudad) {
         return consultorioService.buscarPorCiudad(ciudad).stream()
                 .map(ConsultorioResponse::new)
@@ -44,17 +48,20 @@ public class ConsultorioController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     public ConsultorioResponse buscarPorId(@PathVariable("id") Long id) {
         return new ConsultorioResponse(consultorioService.buscarPorId(id));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN')")
     public ResponseEntity<Void> desactivar(@PathVariable("id") Long id) {
         consultorioService.desactivarConsultorio(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/whatsapp/{numero}")
+    @PreAuthorize("hasAnyRole('SERVICE')")
     public ResponseEntity<ConsultorioResponse> buscarPorNumeroWhatsapp(@PathVariable("numero") String numero) {
         return consultorioService.buscarPorNumeroWhatsapp(numero)
                 .map(c -> ResponseEntity.ok(new ConsultorioResponse(c)))
@@ -62,6 +69,7 @@ public class ConsultorioController {
     }
 
     @PutMapping("/{id}/whatsapp")
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN')")
     public ConsultorioResponse asignarNumeroWhatsapp(@PathVariable("id") Long id, @RequestParam("numero") String numero) {
         return new ConsultorioResponse(consultorioService.asignarNumeroWhatsapp(id, numero));
     }

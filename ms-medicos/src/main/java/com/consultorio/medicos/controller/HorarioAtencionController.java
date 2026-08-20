@@ -7,6 +7,7 @@ import com.consultorio.medicos.service.HorarioAtencionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class HorarioAtencionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN','DOCTOR')")
     public ResponseEntity<HorarioAtencionResponse> crear(@Valid @RequestBody HorarioAtencionRequest request) {
         var horario = horarioAtencionService.crearHorario(
                 request.getConsultorioId(), request.getDiaSemana(),
@@ -31,6 +33,7 @@ public class HorarioAtencionController {
     }
 
     @GetMapping("/consultorio/{consultorioId}")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     public List<HorarioAtencionResponse> listarPorConsultorio(@PathVariable("consultorioId") Long consultorioId) {
         return horarioAtencionService.listarPorConsultorio(consultorioId).stream()
                 .map(HorarioAtencionResponse::new)
@@ -38,6 +41,7 @@ public class HorarioAtencionController {
     }
 
     @GetMapping("/consultorio/{consultorioId}/dia/{diaSemana}")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     public List<HorarioAtencionResponse> listarPorConsultorioYDia(
             @PathVariable("consultorioId") Long consultorioId, @PathVariable("diaSemana") DiaSemana diaSemana) {
         return horarioAtencionService.listarPorConsultorioYDia(consultorioId, diaSemana).stream()
@@ -46,6 +50,7 @@ public class HorarioAtencionController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN','DOCTOR')")
     public ResponseEntity<Void> desactivar(@PathVariable("id") Long id) {
         horarioAtencionService.desactivarHorario(id);
         return ResponseEntity.noContent().build();

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ public class PacienteController {
         this.pacienteService = pacienteService;
     }
 
+    @PreAuthorize("hasAnyRole('RECEPTIONIST','DOCTOR','CLINIC_ADMIN','SERVICE')")
     @PostMapping
     public ResponseEntity<PacienteResponse> crearPaciente(@Valid @RequestBody PacienteRequest request) {
         Paciente paciente = mapearARequest(request);
@@ -30,6 +32,7 @@ public class PacienteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(creado));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PLATFORM_ADMIN')")
     @GetMapping
     public List<PacienteResponse> listarActivos() {
         return pacienteService.listarActivos().stream()
@@ -37,16 +40,19 @@ public class PacienteController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping("/{id}")
     public PacienteResponse buscarPorId(@PathVariable("id") Long id) {
         return new PacienteResponse(pacienteService.buscarPorId(id));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST')")
     @GetMapping("/documento/{documentoIdentidad}")
     public PacienteResponse buscarPorDocumento(@PathVariable("documentoIdentidad") String documentoIdentidad) {
         return new PacienteResponse(pacienteService.buscarPorDocumento(documentoIdentidad));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST')")
     @GetMapping("/buscar")
     public List<PacienteResponse> buscarPorNombre(@RequestParam("nombre") String nombre) {
         return pacienteService.buscarPorNombre(nombre).stream()
@@ -54,6 +60,7 @@ public class PacienteController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT')")
     @PutMapping("/{id}")
     public PacienteResponse actualizarPaciente(@PathVariable("id") Long id, @Valid @RequestBody PacienteRequest request) {
         Paciente datosActualizados = mapearARequest(request);
@@ -61,18 +68,21 @@ public class PacienteController {
         return new PacienteResponse(actualizado);
     }
 
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN','DOCTOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> desactivarPaciente(@PathVariable("id") Long id) {
         pacienteService.desactivarPaciente(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN','DOCTOR')")
     @PutMapping("/{id}/reactivar")
     public PacienteResponse reactivarPaciente(@PathVariable("id") Long id) {
         Paciente paciente = pacienteService.reactivarPaciente(id);
         return new PacienteResponse(paciente);
     }
 
+    @PreAuthorize("hasAnyRole('SERVICE')")
     @GetMapping("/telefono/{telefono}")
     public ResponseEntity<PacienteResponse> buscarPorTelefono(@PathVariable("telefono") String telefono) {
         return pacienteService.buscarTitularPorTelefono(telefono)
@@ -80,12 +90,14 @@ public class PacienteController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasAnyRole('SERVICE')")
     @PostMapping("/registro-rapido")
     public ResponseEntity<PacienteResponse> registroRapido(@RequestBody RegistroRapidoRequest request) {
         Paciente paciente = pacienteService.registroRapido(request.getTelefono(), request.getNombre());
         return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(paciente));
     }
 
+    @PreAuthorize("hasAnyRole('SERVICE')")
     @GetMapping("/telefono/{telefono}/todos")
     public List<PacienteResponse> listarPorTelefono(@PathVariable("telefono") String telefono) {
         return pacienteService.listarPorTelefono(telefono).stream()
@@ -93,12 +105,14 @@ public class PacienteController {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('SERVICE')")
     @PostMapping("/familiar")
     public ResponseEntity<PacienteResponse> registrarFamiliar(@RequestBody RegistroRapidoRequest request) {
         Paciente paciente = pacienteService.registrarFamiliar(request.getTelefono(), request.getNombre(), request.getParentesco());
         return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(paciente));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PLATFORM_ADMIN')")
     @GetMapping("/paginado")
     public ResponseEntity<org.springframework.data.domain.Page<PacienteResponse>> listarPaginado(
             @RequestParam(value = "page", defaultValue = "0") int page,

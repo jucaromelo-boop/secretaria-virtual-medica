@@ -6,6 +6,7 @@ import com.consultorio.medicos.service.EspecialidadService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,12 +22,14 @@ public class EspecialidadController {
         this.especialidadService = especialidadService;
     }
 
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','CLINIC_ADMIN')")
     @PostMapping
     public ResponseEntity<EspecialidadResponse> crear(@Valid @RequestBody EspecialidadRequest request) {
         var especialidad = especialidadService.crear(request.getNombre(), request.getDescripcion());
         return ResponseEntity.status(HttpStatus.CREATED).body(new EspecialidadResponse(especialidad));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping
     public List<EspecialidadResponse> listar() {
         return especialidadService.listarActivas().stream()

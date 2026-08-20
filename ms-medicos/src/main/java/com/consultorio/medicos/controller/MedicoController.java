@@ -8,6 +8,7 @@ import com.consultorio.medicos.service.MedicoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class MedicoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','CLINIC_ADMIN')")
     public ResponseEntity<MedicoResponse> crear(@Valid @RequestBody MedicoRequest request) {
         Medico medico = medicoService.crearMedico(
                 request.getNombreCompleto(),
@@ -35,6 +37,7 @@ public class MedicoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     public List<MedicoResponse> listar() {
         return medicoService.listarActivos().stream()
                 .map(MedicoResponse::new)
@@ -42,11 +45,13 @@ public class MedicoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     public MedicoResponse buscarPorId(@PathVariable("id") Long id) {
         return new MedicoResponse(medicoService.buscarPorId(id));
     }
 
     @GetMapping("/buscar")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     public List<MedicoResponse> buscarPorNombre(@RequestParam("nombre") String nombre) {
         return medicoService.buscarPorNombre(nombre).stream()
                 .map(MedicoResponse::new)
@@ -54,6 +59,7 @@ public class MedicoController {
     }
 
     @GetMapping("/especialidad/{nombre}")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     public List<MedicoResponse> buscarPorEspecialidad(@PathVariable("nombre") String nombre) {
         return medicoService.buscarPorEspecialidad(nombre).stream()
                 .map(MedicoResponse::new)
@@ -61,6 +67,7 @@ public class MedicoController {
     }
 
     @PutMapping("/{id}/perfil")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN')")
     public MedicoResponse actualizarPerfil(@PathVariable("id") Long id, @Valid @RequestBody MedicoPerfilRequest request) {
         Medico medico = medicoService.actualizarPerfil(
                 id, request.getBiografia(), request.getFotoUrl(),
@@ -69,27 +76,32 @@ public class MedicoController {
     }
 
     @PostMapping("/{id}/especialidades/{especialidadId}")
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN')")
     public MedicoResponse agregarEspecialidadSecundaria(@PathVariable("id") Long id, @PathVariable("especialidadId") Long especialidadId) {
         return new MedicoResponse(medicoService.agregarEspecialidadSecundaria(id, especialidadId));
     }
 
     @PostMapping("/{id}/seguros/{seguroId}")
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN')")
     public MedicoResponse agregarSeguroAceptado(@PathVariable("id") Long id, @PathVariable("seguroId") Long seguroId) {
         return new MedicoResponse(medicoService.agregarSeguroAceptado(id, seguroId));
     }
 
     @PutMapping("/{id}/verificar")
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN')")
     public MedicoResponse verificar(@PathVariable("id") Long id) {
         return new MedicoResponse(medicoService.verificarMedico(id));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN')")
     public ResponseEntity<Void> desactivar(@PathVariable("id") Long id) {
         medicoService.desactivarMedico(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/telefono/{telefono}")
+    @PreAuthorize("hasAnyRole('SERVICE')")
     public ResponseEntity<MedicoResponse> buscarPorTelefono(@PathVariable("telefono") String telefono) {
         return medicoService.buscarPorTelefonoPersonal(telefono)
                 .map(m -> ResponseEntity.ok(new MedicoResponse(m)))
@@ -97,6 +109,7 @@ public class MedicoController {
     }
 
     @PutMapping("/{id}/telefono")
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN','DOCTOR')")
     public MedicoResponse actualizarTelefono(@PathVariable("id") Long id, @RequestParam("telefono") String telefono) {
         Medico medico = medicoService.buscarPorId(id);
         medico.setTelefonoPersonal(telefono);
@@ -105,6 +118,7 @@ public class MedicoController {
     }
 
     @GetMapping("/paginado")
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PLATFORM_ADMIN')")
     public ResponseEntity<org.springframework.data.domain.Page<MedicoResponse>> listarPaginado(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
