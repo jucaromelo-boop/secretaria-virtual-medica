@@ -4,6 +4,7 @@ import com.consultorio.pacientes.model.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 public class PacienteResponse {
 
@@ -32,6 +33,7 @@ public class PacienteResponse {
     private LocalDateTime fechaUltimaActualizacion;
     private boolean activo;
     private String notas;
+    private Set<Long> organizacionIds;
 
     public PacienteResponse(Paciente p) {
         this.id = p.getId();
@@ -59,6 +61,7 @@ public class PacienteResponse {
         this.fechaUltimaActualizacion = p.getFechaUltimaActualizacion();
         this.activo = p.isActivo();
         this.notas = p.getNotas();
+        this.organizacionIds = p.getOrganizacionIds();
     }
 
     public Long getId() { return id; }
@@ -86,4 +89,6 @@ public class PacienteResponse {
     public LocalDateTime getFechaUltimaActualizacion() { return fechaUltimaActualizacion; }
     public boolean isActivo() { return activo; }
     public String getNotas() { return notas; }
+    public Set<Long> getOrganizacionIds() { return organizacionIds; }
+
 }

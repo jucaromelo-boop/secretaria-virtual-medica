@@ -20,10 +20,11 @@ public class PacienteService {
         this.pacienteRepository = pacienteRepository;
     }
 
-    public Paciente crearPaciente(Paciente paciente) {
+    public Paciente crearPaciente(Paciente paciente, Long organizacionId) {
         if (pacienteRepository.existsByDocumentoIdentidad(paciente.getDocumentoIdentidad())) {
             throw new DocumentoDuplicadoException(paciente.getDocumentoIdentidad());
         }
+        paciente.getOrganizacionIds().add(organizacionId);
         return pacienteRepository.save(paciente);
     }
 
@@ -126,6 +127,21 @@ public class PacienteService {
                     .findFirst()
                     .orElseThrow(() -> ex);
         }
+    }
+
+    public List<Paciente> listarActivosPorOrganizacion(Long organizacionId) {
+        return pacienteRepository.findByOrganizacionIdAndActivoTrue(organizacionId);
+    }
+
+    public Paciente buscarPorIdYOrganizacion(Long id, Long organizacionId) {
+        return pacienteRepository.findByIdAndOrganizacionId(id, organizacionId)
+                .orElseThrow(() -> new PacienteNoEncontradoException(id));
+    }
+
+    public Paciente asociarAOrganizacion(Long pacienteId, Long organizacionId) {
+        Paciente paciente = buscarPorId(pacienteId);
+        paciente.getOrganizacionIds().add(organizacionId);
+        return pacienteRepository.save(paciente);
     }
 
 

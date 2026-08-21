@@ -26,18 +26,25 @@ public class PacienteController {
 
     @PreAuthorize("hasAnyRole('RECEPTIONIST','DOCTOR','CLINIC_ADMIN','SERVICE')")
     @PostMapping
-    public ResponseEntity<PacienteResponse> crearPaciente(@Valid @RequestBody PacienteRequest request) {
+    public ResponseEntity<PacienteResponse> crearPaciente(@Valid @RequestBody PacienteRequest request,
+                                                          org.springframework.security.core.Authentication authentication) {
         Paciente paciente = mapearARequest(request);
-        Paciente creado = pacienteService.crearPaciente(paciente);
+        Long organizacionId = (esPlatformAdmin(authentication) || esService(authentication))
+                ? 1L // organizacion default para llamadas de servicio sin contexto propio
+                : extraerOrganizacionId(authentication);
+        Paciente creado = pacienteService.crearPaciente(paciente, organizacionId);
         return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(creado));
     }
 
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PLATFORM_ADMIN')")
     @GetMapping
-    public List<PacienteResponse> listarActivos() {
-        return pacienteService.listarActivos().stream()
-                .map(PacienteResponse::new)
-                .collect(Collectors.toList());
+    public List<PacienteResponse> listarActivos(org.springframework.security.core.Authentication authentication) {
+        if (esPlatformAdmin(authentication)) {
+            return pacienteService.listarActivos().stream().map(PacienteResponse::new).collect(Collectors.toList());
+        }
+        Long organizacionId = extraerOrganizacionId(authentication);
+        return pacienteService.listarActivosPorOrganizacion(organizacionId).stream()
+                .map(PacienteResponse::new).collect(Collectors.toList());
     }
 
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
@@ -128,6 +135,12 @@ public class PacienteController {
         return ResponseEntity.ok(resultado);
     }
 
+    @PreAuthorize("hasAnyRole('CLINIC_ADMIN','RECEPTIONIST')")
+    @PostMapping("/{id}/organizaciones/{organizacionId}")
+    public PacienteResponse asociarAOrganizacion(@PathVariable("id") Long id, @PathVariable("organizacionId") Long organizacionId) {
+        return new PacienteResponse(pacienteService.asociarAOrganizacion(id, organizacionId));
+    }
+
     private Paciente mapearARequest(PacienteRequest request) {
         Paciente paciente = new Paciente(
                 request.getNombreCompleto(),
@@ -152,6 +165,27 @@ public class PacienteController {
         paciente.setNumeroPoliza(request.getNumeroPoliza());
         paciente.setNotas(request.getNotas());
         return paciente;
+    }
+
+    private boolean esPlatformAdmin(org.springframework.security.core.Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.toString().equals("ROLE_PLATFORM_ADMIN"));
+    }
+
+    private boolean esService(org.springframework.security.core.Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.toString().equals("ROLE_SERVICE"));
+    }
+
+    private Long extraerOrganizacionId(org.springframework.security.core.Authentication authentication) {
+        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
+            String claim = jwt.getClaimAsString("organizacion_id");
+            if (claim != null) {
+                return Long.valueOf(claim);
+            }
+        }
+        throw new org.springframework.security.access.AccessDeniedException(
+                "No se pudo determinar la organizacion del usuario");
     }
 
 

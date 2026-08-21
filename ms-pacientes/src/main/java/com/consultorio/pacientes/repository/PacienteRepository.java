@@ -18,7 +18,15 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     List<Paciente> findByTelefono(String telefono);
 
-
     org.springframework.data.domain.Page<Paciente> findByActivoTrue(org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT p FROM Paciente p JOIN p.organizacionIds oid WHERE oid = :organizacionId AND p.activo = true")
+    List<Paciente> findByOrganizacionIdAndActivoTrue(@org.springframework.data.repository.query.Param("organizacionId") Long organizacionId);
+
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT p FROM Paciente p JOIN p.organizacionIds oid WHERE p.id = :id AND oid = :organizacionId")
+    Optional<Paciente> findByIdAndOrganizacionId(@org.springframework.data.repository.query.Param("id") Long id,
+                                                 @org.springframework.data.repository.query.Param("organizacionId") Long organizacionId);
 
 }

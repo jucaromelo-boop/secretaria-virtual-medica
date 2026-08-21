@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Past;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "pacientes")
@@ -85,6 +87,11 @@ public class Paciente {
     protected Paciente() {
         // constructor vacio requerido por JPA
     }
+
+    @ElementCollection
+    @CollectionTable(name = "paciente_organizaciones", joinColumns = @JoinColumn(name = "paciente_id"))
+    @Column(name = "organizacion_id")
+    private Set<Long> organizacionIds = new HashSet<>();
 
     public Paciente(String nombreCompleto, String documentoIdentidad, TipoDocumento tipoDocumento) {
         this.nombreCompleto = nombreCompleto;
@@ -175,4 +182,7 @@ public class Paciente {
 
     public String getParentesco() { return parentesco; }
     public void setParentesco(String parentesco) { this.parentesco = parentesco; }
+
+    public Set<Long> getOrganizacionIds() { return organizacionIds; }
+    public void setOrganizacionIds(Set<Long> organizacionIds) { this.organizacionIds = organizacionIds; }
 }
