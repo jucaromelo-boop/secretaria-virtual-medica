@@ -42,6 +42,8 @@ public class Consultorio {
 
     @Column(unique = true)
     private String numeroWhatsapp;
+    @Column(nullable = false)
+    private Long organizacionId;
 
     protected Consultorio() {
     }
@@ -51,9 +53,9 @@ public class Consultorio {
         this.nombreConsultorio = nombreConsultorio;
         this.direccion = direccion;
         this.tarifaConsulta = tarifaConsulta;
+        this.organizacionId = medico.getOrganizacionId();
         this.activo = true;
     }
-
     public Long getId() { return id; }
 
     public Medico getMedico() { return medico; }
@@ -85,4 +87,7 @@ public class Consultorio {
 
     public String getNumeroWhatsapp() { return numeroWhatsapp; }
     public void setNumeroWhatsapp(String numeroWhatsapp) { this.numeroWhatsapp = numeroWhatsapp; }
+
+    public Long getOrganizacionId() { return organizacionId; }
+    public void setOrganizacionId(Long organizacionId) { this.organizacionId = organizacionId; }
 }

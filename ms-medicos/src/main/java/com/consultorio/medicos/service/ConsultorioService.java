@@ -60,4 +60,8 @@ public class ConsultorioService {
         consultorio.setNumeroWhatsapp(numeroWhatsapp);
         return consultorioRepository.save(consultorio);
     }
+
+    public List<Consultorio> listarPorMedicoYOrganizacion(Long medicoId, Long organizacionId) {
+        return consultorioRepository.findByMedicoIdAndOrganizacionIdAndActivoTrue(medicoId, organizacionId);
+    }
 }

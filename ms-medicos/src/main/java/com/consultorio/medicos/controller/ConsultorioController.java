@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,12 +32,16 @@ public class ConsultorioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ConsultorioResponse(consultorio));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE','PLATFORM_ADMIN')")
     @GetMapping("/medico/{medicoId}")
-    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
-    public List<ConsultorioResponse> listarPorMedico(@PathVariable("medicoId") Long medicoId) {
-        return consultorioService.listarPorMedico(medicoId).stream()
-                .map(ConsultorioResponse::new)
-                .collect(Collectors.toList());
+    public List<ConsultorioResponse> listarPorMedico(@PathVariable("medicoId") Long medicoId, Authentication authentication) {
+        if (esPlatformAdmin(authentication) || esService(authentication)) {
+            return consultorioService.listarPorMedico(medicoId).stream()
+                    .map(ConsultorioResponse::new).collect(Collectors.toList());
+        }
+        Long organizacionId = extraerOrganizacionId(authentication);
+        return consultorioService.listarPorMedicoYOrganizacion(medicoId, organizacionId).stream()
+                .map(ConsultorioResponse::new).collect(Collectors.toList());
     }
 
     @GetMapping("/ciudad/{ciudad}")
@@ -72,5 +77,29 @@ public class ConsultorioController {
     @PreAuthorize("hasAnyRole('CLINIC_ADMIN')")
     public ConsultorioResponse asignarNumeroWhatsapp(@PathVariable("id") Long id, @RequestParam("numero") String numero) {
         return new ConsultorioResponse(consultorioService.asignarNumeroWhatsapp(id, numero));
+    }
+
+    private boolean esPlatformAdmin(org.springframework.security.core.Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.toString().equals("ROLE_PLATFORM_ADMIN"));
+    }
+
+    private Long extraerOrganizacionId(org.springframework.security.core.Authentication authentication) {
+        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
+            String claim = jwt.getClaimAsString("organizacion_id");
+            if (claim != null) {
+                return Long.valueOf(claim);
+            }
+        }
+        // Si es el token de SERVICE (ms-orquestador-ia), no tiene organizacion_id propio,
+        // por ahora permitimos que el rol SERVICE vea todo (ajustamos esto mas adelante
+        // pasando el organizacionId explicitamente desde el orquestador)
+        throw new org.springframework.security.access.AccessDeniedException(
+                "No se pudo determinar la organizacion del usuario");
+    }
+
+    private boolean esService(org.springframework.security.core.Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.toString().equals("ROLE_SERVICE"));
     }
 }

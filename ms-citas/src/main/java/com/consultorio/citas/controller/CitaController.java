@@ -64,17 +64,25 @@ public class CitaController {
 
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PLATFORM_ADMIN')")
     @GetMapping
-    public List<CitaResponse> listarTodas() {
-        return citaService.listarTodas().stream()
-                .map(CitaResponse::new)
-                .collect(Collectors.toList());
+    public List<CitaResponse> listarTodas(org.springframework.security.core.Authentication authentication) {
+        if (esPlatformAdmin(authentication)) {
+            return citaService.listarTodas().stream().map(CitaResponse::new).collect(Collectors.toList());
+        }
+        Long organizacionId = extraerOrganizacionId(authentication);
+        return citaService.listarTodasPorOrganizacion(organizacionId).stream()
+                .map(CitaResponse::new).collect(Collectors.toList());
     }
 
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping("/{id}")
-    public CitaResponse buscarPorId(@PathVariable("id") Long id,
-                                    org.springframework.security.core.Authentication authentication) {
-        Cita cita = citaService.buscarPorId(id);
+    public CitaResponse buscarPorId(@PathVariable("id") Long id, org.springframework.security.core.Authentication authentication) {
+        Cita cita;
+        if (esPlatformAdmin(authentication) || esService(authentication)) {
+            cita = citaService.buscarPorId(id);
+        } else {
+            Long organizacionId = extraerOrganizacionId(authentication);
+            cita = citaService.buscarPorIdYOrganizacion(id, organizacionId);
+        }
         validarOwnershipSiEsPaciente(cita, authentication);
         return new CitaResponse(cita);
     }
@@ -149,5 +157,26 @@ public class CitaController {
                         "No tienes permiso para acceder a esta cita");
             }
         }
+    }
+
+    private boolean esPlatformAdmin(org.springframework.security.core.Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.toString().equals("ROLE_PLATFORM_ADMIN"));
+    }
+
+    private boolean esService(org.springframework.security.core.Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.toString().equals("ROLE_SERVICE"));
+    }
+
+    private Long extraerOrganizacionId(org.springframework.security.core.Authentication authentication) {
+        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
+            String claim = jwt.getClaimAsString("organizacion_id");
+            if (claim != null) {
+                return Long.valueOf(claim);
+            }
+        }
+        throw new org.springframework.security.access.AccessDeniedException(
+                "No se pudo determinar la organizacion del usuario");
     }
 }

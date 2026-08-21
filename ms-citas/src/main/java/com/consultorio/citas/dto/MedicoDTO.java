@@ -5,6 +5,8 @@ public class MedicoDTO {
     private Long id;
     private String nombreCompleto;
     private boolean activo;
+    private Long organizacionId;
+
 
     public MedicoDTO() {
     }
@@ -15,4 +17,6 @@ public class MedicoDTO {
     public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
+    public Long getOrganizacionId() { return organizacionId; }
+    public void setOrganizacionId(Long organizacionId) { this.organizacionId = organizacionId; }
 }

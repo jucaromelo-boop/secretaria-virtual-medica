@@ -63,6 +63,7 @@ class CitaServiceTest {
         dto.setId(id);
         dto.setNombreCompleto("Dra. Gomez");
         dto.setActivo(true);
+        dto.setOrganizacionId(1L);
         return dto;
     }
 
@@ -105,7 +106,7 @@ class CitaServiceTest {
     @Test
     void deberiaLanzarConflictoHorarioCuandoMedicoYaTieneCitaEnEseRango() {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
-        Cita citaExistente = new Cita(99L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ);
+        Cita citaExistente = new Cita(99L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ,1L);
 
         when(pacienteClient.obtenerPaciente(1L)).thenReturn(pacienteActivo(1L));
         when(medicoClient.obtenerMedico(1L)).thenReturn(medicoActivo(1L));
@@ -123,7 +124,7 @@ class CitaServiceTest {
     @Test
     void noDeberiaLanzarConflictoSiLaCitaExistenteEstaCancelada() {
         LocalDateTime fechaHora = LocalDateTime.now().plusDays(1);
-        Cita citaCancelada = new Cita(99L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ);
+        Cita citaCancelada = new Cita(99L, 1L, fechaHora, 30, TipoConsulta.PRIMERA_VEZ,1L);
         citaCancelada.setEstado(EstadoCita.CANCELADA);
 
         when(pacienteClient.obtenerPaciente(1L)).thenReturn(pacienteActivo(1L));
@@ -142,7 +143,7 @@ class CitaServiceTest {
 
     @Test
     void noDeberiaPermitirCancelarConMenosDeLasHorasMinimas() {
-        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusMinutes(30), 30, TipoConsulta.PRIMERA_VEZ);
+        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusMinutes(30), 30, TipoConsulta.PRIMERA_VEZ,1L);
         when(citaRepository.findById(1L)).thenReturn(Optional.of(cita));
         when(citasProperties.getHorasMinimasAnticipacionCancelacion()).thenReturn(2);
 
@@ -154,7 +155,7 @@ class CitaServiceTest {
 
     @Test
     void deberiaPermitirCancelarConSuficienteAnticipacion() {
-        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusDays(1), 30, TipoConsulta.PRIMERA_VEZ);
+        Cita cita = new Cita(1L, 1L, LocalDateTime.now().plusDays(1), 30, TipoConsulta.PRIMERA_VEZ,1L);
         when(citaRepository.findById(1L)).thenReturn(Optional.of(cita));
         when(citasProperties.getHorasMinimasAnticipacionCancelacion()).thenReturn(2);
         when(citaRepository.save(any(Cita.class)))

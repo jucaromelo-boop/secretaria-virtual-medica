@@ -39,16 +39,20 @@ public class Cita {
     @Column(nullable = false)
     private TipoConsulta tipoConsulta = TipoConsulta.PRIMERA_VEZ;
 
+    @Column(nullable = false)
+    private Long organizacionId;
+
     protected Cita() {
         // constructor vacio requerido por JPA
     }
 
-    public Cita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos, TipoConsulta tipoConsulta) {
+    public Cita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos, TipoConsulta tipoConsulta, Long organizacionId) {
         this.pacienteId = pacienteId;
         this.medicoId = medicoId;
         this.fechaHora = fechaHora;
         this.duracionMinutos = duracionMinutos;
         this.tipoConsulta = tipoConsulta != null ? tipoConsulta : TipoConsulta.PRIMERA_VEZ;
+        this.organizacionId = organizacionId;
     }
 
     // Getters y setters
@@ -95,4 +99,7 @@ public class Cita {
     public TipoConsulta getTipoConsulta() { return tipoConsulta; }
 
     public void setTipoConsulta(TipoConsulta tipoConsulta) { this.tipoConsulta = tipoConsulta; }
+
+    public Long getOrganizacionId() { return organizacionId; }
+    public void setOrganizacionId(Long organizacionId) { this.organizacionId = organizacionId; }
 }

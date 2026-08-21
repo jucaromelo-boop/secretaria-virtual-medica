@@ -58,7 +58,7 @@ public class CitaService {
 
         validarDisponibilidad(medicoId, fechaHora, duracion);
 
-        Cita cita = new Cita(pacienteId, medicoId, fechaHora, duracion, tipoConsulta);
+        Cita cita = new Cita(pacienteId, medicoId, fechaHora, duracion, tipoConsulta, medico.getOrganizacionId());
         Cita citaGuardada = citaRepository.save(cita);
 
         citaEventPublisher.publicarCitaCreada(citaGuardada.getId(), pacienteId, medicoId, fechaHora);
@@ -125,5 +125,14 @@ public class CitaService {
 
     public org.springframework.data.domain.Page<Cita> listarPaginado(org.springframework.data.domain.Pageable pageable) {
         return citaRepository.findAll(pageable);
+    }
+
+    public List<Cita> listarTodasPorOrganizacion(Long organizacionId) {
+        return citaRepository.findByOrganizacionId(organizacionId);
+    }
+
+    public Cita buscarPorIdYOrganizacion(Long id, Long organizacionId) {
+        return citaRepository.findByIdAndOrganizacionId(id, organizacionId)
+                .orElseThrow(() -> new CitaNoEncontradaException(id));
     }
 }

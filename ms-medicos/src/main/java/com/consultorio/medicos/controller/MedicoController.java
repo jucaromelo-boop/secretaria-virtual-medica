@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,10 +60,14 @@ public class MedicoController {
                 .anyMatch(a -> a.toString().equals("ROLE_SERVICE"));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE','PLATFORM_ADMIN')")
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
-    public MedicoResponse buscarPorId(@PathVariable("id") Long id) {
-        return new MedicoResponse(medicoService.buscarPorId(id));
+    public MedicoResponse buscarPorId(@PathVariable("id") Long id, Authentication authentication) {
+        if (esPlatformAdmin(authentication) || esService(authentication)) {
+            return new MedicoResponse(medicoService.buscarPorId(id));
+        }
+        Long organizacionId = extraerOrganizacionId(authentication);
+        return new MedicoResponse(medicoService.buscarPorIdYOrganizacion(id, organizacionId));
     }
 
     @GetMapping("/buscar")

@@ -10,4 +10,5 @@ public interface ConsultorioRepository extends JpaRepository<Consultorio, Long> 
     List<Consultorio> findByMedicoIdAndActivoTrue(Long medicoId);
     List<Consultorio> findByCiudadIgnoreCaseAndActivoTrue(String ciudad);
     Optional<Consultorio> findByNumeroWhatsapp(String numeroWhatsapp);
+    List<Consultorio> findByMedicoIdAndOrganizacionIdAndActivoTrue(Long medicoId, Long organizacionId);
 }

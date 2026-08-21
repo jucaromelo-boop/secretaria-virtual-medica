@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface CitaRepository extends JpaRepository<Cita, Long> {
 
@@ -16,4 +17,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     List<Cita> findByEstado(EstadoCita estado);
 
     List<Cita> findByFechaHoraBetweenAndEstado(LocalDateTime desde, LocalDateTime hasta, EstadoCita estado);
+
+    List<Cita> findByOrganizacionId(Long organizacionId);
+    Optional<Cita> findByIdAndOrganizacionId(Long id, Long organizacionId);
 }
