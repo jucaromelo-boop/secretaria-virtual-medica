@@ -79,13 +79,17 @@ public class Medico {
     @Column(nullable = false)
     private boolean activo = true;
 
+    @Column(nullable = false)
+    private Long organizacionId;
+
     protected Medico() {
     }
 
-    public Medico(String nombreCompleto, String cedulaProfesional, Especialidad especialidadPrincipal) {
+    public Medico(String nombreCompleto, String cedulaProfesional, Especialidad especialidadPrincipal, Long organizacionId) {
         this.nombreCompleto = nombreCompleto;
         this.cedulaProfesional = cedulaProfesional;
         this.especialidadPrincipal = especialidadPrincipal;
+        this.organizacionId = organizacionId;
         this.fechaRegistro = LocalDateTime.now();
         this.activo = true;
         this.verificado = false;
@@ -145,4 +149,7 @@ public class Medico {
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
+
+    public Long getOrganizacionId() { return organizacionId; }
+    public void setOrganizacionId(Long organizacionId) { this.organizacionId = organizacionId; }
 }

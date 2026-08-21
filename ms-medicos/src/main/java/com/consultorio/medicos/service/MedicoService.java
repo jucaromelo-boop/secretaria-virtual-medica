@@ -26,12 +26,12 @@ public class MedicoService {
     }
 
     public Medico crearMedico(String nombreCompleto, String cedulaProfesional, Long especialidadPrincipalId,
-                              String universidad, Integer anioGraduacion) {
+                              Long organizacionId, String universidad, Integer anioGraduacion) {
         if (medicoRepository.existsByCedulaProfesional(cedulaProfesional)) {
             throw new CedulaDuplicadaException(cedulaProfesional);
         }
         Especialidad especialidad = especialidadService.buscarPorId(especialidadPrincipalId);
-        Medico medico = new Medico(nombreCompleto, cedulaProfesional, especialidad);
+        Medico medico = new Medico(nombreCompleto, cedulaProfesional, especialidad, organizacionId);
         medico.setUniversidad(universidad);
         medico.setAnioGraduacion(anioGraduacion);
         return medicoRepository.save(medico);
@@ -97,5 +97,14 @@ public class MedicoService {
 
     public org.springframework.data.domain.Page<Medico> listarPaginado(org.springframework.data.domain.Pageable pageable) {
         return medicoRepository.findByActivoTrue(pageable);
+    }
+
+    public List<Medico> listarActivosPorOrganizacion(Long organizacionId) {
+        return medicoRepository.findByOrganizacionIdAndActivoTrue(organizacionId);
+    }
+
+    public Medico buscarPorIdYOrganizacion(Long id, Long organizacionId) {
+        return medicoRepository.findByIdAndOrganizacionId(id, organizacionId)
+                .orElseThrow(() -> new MedicoNoEncontradoException(id));
     }
 }

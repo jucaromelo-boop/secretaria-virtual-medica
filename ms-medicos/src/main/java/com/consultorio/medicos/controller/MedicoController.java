@@ -26,22 +26,37 @@ public class MedicoController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','CLINIC_ADMIN')")
-    public ResponseEntity<MedicoResponse> crear(@Valid @RequestBody MedicoRequest request) {
+    public ResponseEntity<MedicoResponse> crear(@Valid @RequestBody MedicoRequest request,
+                                                org.springframework.security.core.Authentication authentication) {
+        Long organizacionId = extraerOrganizacionId(authentication);
         Medico medico = medicoService.crearMedico(
                 request.getNombreCompleto(),
                 request.getCedulaProfesional(),
                 request.getEspecialidadPrincipalId(),
+                organizacionId,
                 request.getUniversidad(),
                 request.getAnioGraduacion());
         return ResponseEntity.status(HttpStatus.CREATED).body(new MedicoResponse(medico));
     }
 
+    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE','PLATFORM_ADMIN')")
     @GetMapping
-    @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
-    public List<MedicoResponse> listar() {
-        return medicoService.listarActivos().stream()
+    public List<MedicoResponse> listar(org.springframework.security.core.Authentication authentication) {
+        if (esPlatformAdmin(authentication) || esService(authentication)) {
+            return medicoService.listarActivos().stream()
+                    .map(MedicoResponse::new)
+                    .collect(Collectors.toList());
+        }
+
+        Long organizacionId = extraerOrganizacionId(authentication);
+        return medicoService.listarActivosPorOrganizacion(organizacionId).stream()
                 .map(MedicoResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    private boolean esService(org.springframework.security.core.Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.toString().equals("ROLE_SERVICE"));
     }
 
     @GetMapping("/{id}")
@@ -131,5 +146,24 @@ public class MedicoController {
                 .map(MedicoResponse::new);
 
         return ResponseEntity.ok(resultado);
+    }
+
+    private boolean esPlatformAdmin(org.springframework.security.core.Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.toString().equals("ROLE_PLATFORM_ADMIN"));
+    }
+
+    private Long extraerOrganizacionId(org.springframework.security.core.Authentication authentication) {
+        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
+            String claim = jwt.getClaimAsString("organizacion_id");
+            if (claim != null) {
+                return Long.valueOf(claim);
+            }
+        }
+        // Si es el token de SERVICE (ms-orquestador-ia), no tiene organizacion_id propio,
+        // por ahora permitimos que el rol SERVICE vea todo (ajustamos esto mas adelante
+        // pasando el organizacionId explicitamente desde el orquestador)
+        throw new org.springframework.security.access.AccessDeniedException(
+                "No se pudo determinar la organizacion del usuario");
     }
 }

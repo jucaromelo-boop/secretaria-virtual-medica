@@ -43,6 +43,11 @@ public class GlobalExceptionHandler {
         return construirRespuesta(HttpStatus.BAD_REQUEST, mensaje);
     }
 
+    @ExceptionHandler(OrganizacionNoEncontradaException.class)
+    public ResponseEntity<Map<String, Object>> handleOrganizacionNoEncontrada(OrganizacionNoEncontradaException ex) {
+        return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
