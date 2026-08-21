@@ -72,8 +72,11 @@ public class CitaController {
 
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping("/{id}")
-    public CitaResponse buscarPorId(@PathVariable("id") Long id) {
-        return new CitaResponse(citaService.buscarPorId(id));
+    public CitaResponse buscarPorId(@PathVariable("id") Long id,
+                                    org.springframework.security.core.Authentication authentication) {
+        Cita cita = citaService.buscarPorId(id);
+        validarOwnershipSiEsPaciente(cita, authentication);
+        return new CitaResponse(cita);
     }
 
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
@@ -97,7 +100,11 @@ public class CitaController {
 
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @PutMapping("/{id}/cancelar")
-    public CitaResponse cancelarCita(@PathVariable("id") Long id, @RequestBody CancelarCitaRequest request) {
+    public CitaResponse cancelarCita(@PathVariable("id") Long id, @RequestBody CancelarCitaRequest request,
+                                     org.springframework.security.core.Authentication authentication) {
+        Cita citaExistente = citaService.buscarPorId(id);
+        validarOwnershipSiEsPaciente(citaExistente, authentication);
+
         Cita cita = citaService.cancelarCita(id, request.getMotivo());
         return new CitaResponse(cita);
     }
@@ -123,5 +130,24 @@ public class CitaController {
         Page<CitaResponse> resultado = citaService.listarPaginado(pageable).map(CitaResponse::new);
 
         return ResponseEntity.ok(resultado);
+    }
+
+    private void validarOwnershipSiEsPaciente(Cita cita, org.springframework.security.core.Authentication authentication) {
+        boolean esSoloPaciente = authentication.getAuthorities().stream()
+                .map(Object::toString)
+                .allMatch(role -> role.equals("ROLE_PATIENT") || role.equals("ROLE_offline_access")
+                        || role.equals("ROLE_default-roles-consultorio") || role.equals("ROLE_uma_authorization"));
+
+        if (!esSoloPaciente) {
+            return; // tiene algun rol de staff, no aplica restriccion de ownership
+        }
+
+        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
+            String pacienteIdClaim = jwt.getClaimAsString("paciente_id");
+            if (pacienteIdClaim == null || !pacienteIdClaim.equals(String.valueOf(cita.getPacienteId()))) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "No tienes permiso para acceder a esta cita");
+            }
+        }
     }
 }
