@@ -10,9 +10,10 @@ public class RestTemplateConfig {
 
     @Bean
     @LoadBalanced
-    public RestTemplate restTemplate(ServiceAuthInterceptor serviceAuthInterceptor) {
+    public RestTemplate restTemplate(ServiceAuthInterceptor serviceAuthInterceptor, CorrelationIdInterceptor correlationIdInterceptor) {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add(serviceAuthInterceptor);
+        restTemplate.getInterceptors().add(correlationIdInterceptor);
         return restTemplate;
     }
 }

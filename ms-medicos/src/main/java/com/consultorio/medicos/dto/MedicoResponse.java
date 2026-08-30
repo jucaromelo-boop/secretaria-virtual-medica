@@ -24,6 +24,7 @@ public class MedicoResponse {
     private LocalDateTime fechaRegistro;
     private LocalDateTime fechaUltimaActualizacion;
     private boolean activo;
+    private Long organizacionId;
 
     public MedicoResponse(Medico m) {
         this.id = m.getId();
@@ -45,6 +46,7 @@ public class MedicoResponse {
         this.fechaRegistro = m.getFechaRegistro();
         this.fechaUltimaActualizacion = m.getFechaUltimaActualizacion();
         this.activo = m.isActivo();
+        this.organizacionId = m.getOrganizacionId();
     }
 
     public Long getId() { return id; }
@@ -64,4 +66,5 @@ public class MedicoResponse {
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
     public LocalDateTime getFechaUltimaActualizacion() { return fechaUltimaActualizacion; }
     public boolean isActivo() { return activo; }
+    public Long getOrganizacionId() { return organizacionId; }
 }
