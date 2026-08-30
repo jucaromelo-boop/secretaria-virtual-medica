@@ -32,15 +32,18 @@ public class CitaService {
     private final PacienteClient pacienteClient;
     private final MedicoClient medicoClient;
     private final CitaEventPublisher citaEventPublisher;
+    private final AuditoriaService auditoriaService;
+
 
     public CitaService(CitaRepository citaRepository, CitasProperties citasProperties,
                        PacienteClient pacienteClient, MedicoClient medicoClient,
-                       CitaEventPublisher citaEventPublisher) {
+                       CitaEventPublisher citaEventPublisher, AuditoriaService auditoriaService) {
         this.citaRepository = citaRepository;
         this.citasProperties = citasProperties;
         this.pacienteClient = pacienteClient;
         this.medicoClient = medicoClient;
         this.citaEventPublisher = citaEventPublisher;
+        this.auditoriaService = auditoriaService;
     }
 
     public Cita crearCita(Long pacienteId, Long medicoId, LocalDateTime fechaHora, Integer duracionMinutos, TipoConsulta tipoConsulta) {
@@ -62,6 +65,9 @@ public class CitaService {
         Cita citaGuardada = citaRepository.save(cita);
 
         citaEventPublisher.publicarCitaCreada(citaGuardada.getId(), pacienteId, medicoId, fechaHora);
+
+        auditoriaService.registrar("CREAR_CITA", "Cita", citaGuardada.getId(),
+                "Paciente " + pacienteId + ", Medico " + medicoId + ", Fecha " + fechaHora);
 
         return citaGuardada;
     }
@@ -99,6 +105,8 @@ public class CitaService {
         citaEventPublisher.publicarCitaCancelada(
                 citaCancelada.getId(), citaCancelada.getPacienteId(), citaCancelada.getMedicoId(),
                 citaCancelada.getFechaHora(), motivo);
+
+        auditoriaService.registrar("CANCELAR_CITA", "Cita", citaCancelada.getId(), "Motivo: " + motivo);
 
         return citaCancelada;
     }

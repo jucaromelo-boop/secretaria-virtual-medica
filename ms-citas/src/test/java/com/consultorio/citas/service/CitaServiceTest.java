@@ -50,6 +50,9 @@ class CitaServiceTest {
     @InjectMocks
     private CitaService citaService;
 
+    @Mock
+    private AuditoriaService auditoriaService;
+
     private PacienteDTO pacienteActivo(Long id) {
         PacienteDTO dto = new PacienteDTO();
         dto.setId(id);
