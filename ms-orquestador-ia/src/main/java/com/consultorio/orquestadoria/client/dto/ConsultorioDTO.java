@@ -9,6 +9,7 @@ public class ConsultorioDTO {
     private BigDecimal tarifaConsulta;
     private Integer duracionConsultaMinutos;
     private String numeroWhatsapp;
+    private Long organizacionId;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -22,5 +23,7 @@ public class ConsultorioDTO {
     public void setDuracionConsultaMinutos(Integer duracionConsultaMinutos) { this.duracionConsultaMinutos = duracionConsultaMinutos; }
     public String getNumeroWhatsapp() { return numeroWhatsapp; }
     public void setNumeroWhatsapp(String numeroWhatsapp) { this.numeroWhatsapp = numeroWhatsapp; }
+    public Long getOrganizacionId() { return organizacionId; }
+    public void setOrganizacionId(Long organizacionId) { this.organizacionId = organizacionId; }
 
 }

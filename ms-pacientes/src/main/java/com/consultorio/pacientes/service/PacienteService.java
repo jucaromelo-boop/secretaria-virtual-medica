@@ -98,20 +98,22 @@ public class PacienteService {
                 .findFirst();
     }
 
-    public Paciente registroRapido(String telefono, String nombreCompleto) {
-        return registrarConParentesco(telefono, nombreCompleto, "Titular");
+    public Paciente registroRapido(String telefono, String nombreCompleto, Long organizacionId) {
+        return registrarConParentesco(telefono, nombreCompleto, "Titular", organizacionId);
     }
 
-    public Paciente registrarFamiliar(String telefono, String nombreCompleto, String parentesco) {
-        return registrarConParentesco(telefono, nombreCompleto, parentesco);
+    public Paciente registrarFamiliar(String telefono, String nombreCompleto, String parentesco, Long organizacionId) {
+        return registrarConParentesco(telefono, nombreCompleto, parentesco, organizacionId);
     }
 
-    private Paciente registrarConParentesco(String telefono, String nombreCompleto, String parentesco) {
+    private Paciente registrarConParentesco(String telefono, String nombreCompleto, String parentesco, Long organizacionId) {
         Optional<Paciente> existente = pacienteRepository.findByTelefono(telefono).stream()
                 .filter(p -> p.getNombreCompleto().equalsIgnoreCase(nombreCompleto))
                 .findFirst();
         if (existente.isPresent()) {
-            return existente.get();
+            Paciente paciente = existente.get();
+            paciente.getOrganizacionIds().add(organizacionId);
+            return pacienteRepository.save(paciente);
         }
 
         String documentoTemporal = "WA-" + telefono + "-" + nombreCompleto.replaceAll("\\s+", "").toUpperCase();
@@ -120,6 +122,7 @@ public class PacienteService {
             Paciente paciente = new Paciente(nombreCompleto, documentoTemporal, TipoDocumento.OTRO);
             paciente.setTelefono(telefono);
             paciente.setParentesco(parentesco);
+            paciente.getOrganizacionIds().add(organizacionId);
             return pacienteRepository.save(paciente);
         } catch (DataIntegrityViolationException ex) {
             return pacienteRepository.findByTelefono(telefono).stream()

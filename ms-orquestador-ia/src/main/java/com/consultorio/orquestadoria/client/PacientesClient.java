@@ -34,10 +34,11 @@ public class PacientesClient {
         }
     }
 
-    public PacienteDTO registroRapido(String telefono, String nombre) {
+    public PacienteDTO registroRapido(String telefono, String nombre, Long organizacionId) {
         RegistroRapidoRequest body = new RegistroRapidoRequest();
         body.setTelefono(telefono);
         body.setNombre(nombre);
+        body.setOrganizacionId(organizacionId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -51,11 +52,12 @@ public class PacientesClient {
         return resultado != null ? Arrays.asList(resultado) : List.of();
     }
 
-    public PacienteDTO registrarFamiliar(String telefono, String nombre, String parentesco) {
+    public PacienteDTO registrarFamiliar(String telefono, String nombre, String parentesco, Long organizacionId) {
         RegistroRapidoRequest body = new RegistroRapidoRequest();
         body.setTelefono(telefono);
         body.setNombre(nombre);
         body.setParentesco(parentesco);
+        body.setOrganizacionId(organizacionId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

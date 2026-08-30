@@ -28,12 +28,12 @@ public class SkillExecutor {
         this.listaEsperaClient = listaEsperaClient;
     }
 
-    public String ejecutar(String nombreSkill, Map<String, Object> input, String telefonoConversacion) {
+    public String ejecutar(String nombreSkill, Map<String, Object> input, String telefonoConversacion, Long organizacionId) {
         try {
             return switch (nombreSkill) {
                 case "buscar_especialidades" -> buscarEspecialidades();
                 case "buscar_medicos_por_especialidad" -> buscarMedicosPorEspecialidad(input);
-                case "identificar_o_registrar_paciente" -> identificarORegistrarPaciente(input);
+                case "identificar_o_registrar_paciente" -> identificarORegistrarPaciente(input, organizacionId);
                 case "crear_cita" -> crearCita(input);
                 case "consultar_citas_paciente" -> consultarCitasPaciente(input);
                 case "cancelar_cita" -> cancelarCita(input);
@@ -41,7 +41,7 @@ public class SkillExecutor {
                 case "reagendar_cita" -> reagendarCita(input);
                 case "cancelar_cita_como_medico" -> cancelarCitaComoMedico(input);
                 case "listar_pacientes_del_telefono" -> listarPacientesDelTelefono(telefonoConversacion);
-                case "registrar_familiar" -> registrarFamiliar(input, telefonoConversacion);
+                case "registrar_familiar" -> registrarFamiliar(input, telefonoConversacion, organizacionId);
                 case "registrar_lista_espera" -> registrarListaEspera(input);
                 default -> "Skill desconocida: " + nombreSkill;
             };
@@ -61,10 +61,10 @@ public class SkillExecutor {
                 .collect(Collectors.joining("; "));
     }
 
-    private String registrarFamiliar(Map<String, Object> input, String telefono) {
+    private String registrarFamiliar(Map<String, Object> input, String telefono, Long organizacionId) {
         String nombre = (String) input.get("nombreCompleto");
         String parentesco = (String) input.get("parentesco");
-        PacienteDTO creado = pacientesClient.registrarFamiliar(telefono, nombre, parentesco);
+        PacienteDTO creado = pacientesClient.registrarFamiliar(telefono, nombre, parentesco, organizacionId);
         return "Familiar registrado exitosamente: pacienteId=" + creado.getId() + ", nombre=" + creado.getNombreCompleto()
                 + ", parentesco=" + creado.getParentesco();
     }
@@ -99,7 +99,7 @@ public class SkillExecutor {
                 .collect(Collectors.joining("; "));
     }
 
-    private String identificarORegistrarPaciente(Map<String, Object> input) {
+    private String identificarORegistrarPaciente(Map<String, Object> input, Long organizacionId) {
         String telefono = (String) input.get("telefono");
         Optional<PacienteDTO> existente = pacientesClient.buscarPorTelefono(telefono);
 
@@ -113,7 +113,7 @@ public class SkillExecutor {
             return "El paciente no esta registrado. Necesitas pedirle su nombre completo antes de continuar.";
         }
 
-        PacienteDTO creado = pacientesClient.registroRapido(telefono, nombre);
+        PacienteDTO creado = pacientesClient.registroRapido(telefono, nombre, organizacionId);
         return "Paciente registrado exitosamente: pacienteId=" + creado.getId() + ", nombre=" + creado.getNombreCompleto();
     }
 

@@ -100,7 +100,7 @@ public class PacienteController {
     @PreAuthorize("hasAnyRole('SERVICE')")
     @PostMapping("/registro-rapido")
     public ResponseEntity<PacienteResponse> registroRapido(@RequestBody RegistroRapidoRequest request) {
-        Paciente paciente = pacienteService.registroRapido(request.getTelefono(), request.getNombre());
+        Paciente paciente = pacienteService.registroRapido(request.getTelefono(), request.getNombre(), request.getOrganizacionId());
         return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(paciente));
     }
 
@@ -115,7 +115,7 @@ public class PacienteController {
     @PreAuthorize("hasAnyRole('SERVICE')")
     @PostMapping("/familiar")
     public ResponseEntity<PacienteResponse> registrarFamiliar(@RequestBody RegistroRapidoRequest request) {
-        Paciente paciente = pacienteService.registrarFamiliar(request.getTelefono(), request.getNombre(), request.getParentesco());
+        Paciente paciente = pacienteService.registrarFamiliar(request.getTelefono(), request.getNombre(), request.getParentesco(), request.getOrganizacionId());
         return ResponseEntity.status(HttpStatus.CREATED).body(new PacienteResponse(paciente));
     }
 

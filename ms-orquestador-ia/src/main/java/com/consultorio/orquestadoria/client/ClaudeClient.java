@@ -43,7 +43,7 @@ public class ClaudeClient {
     }
 
     public String enviarMensaje(String systemPrompt, List<ClaudeMessage> historial, List<ToolDefinition> tools,
-                                String telefonoConversacion) {
+                                String telefonoConversacion, Long organizacionId) {
         List<ClaudeMessage> conversacion = new ArrayList<>(historial);
 
         for (int i = 0; i < MAX_ITERACIONES; i++) {
@@ -76,7 +76,7 @@ public class ClaudeClient {
             for (ClaudeResponse.ContenidoBloque bloque : response.getContent()) {
                 if ("tool_use".equals(bloque.getType())) {
                     log.info("Ejecutando skill: {} con input: {}", bloque.getName(), bloque.getInput());
-                    String resultado = skillExecutor.ejecutar(bloque.getName(), bloque.getInput(), telefonoConversacion);
+                    String resultado = skillExecutor.ejecutar(bloque.getName(), bloque.getInput(), telefonoConversacion,organizacionId);
                     log.info("Resultado de la skill {}: {}", bloque.getName(), resultado);
                     resultadosTools.add(Map.of(
                             "type", "tool_result",

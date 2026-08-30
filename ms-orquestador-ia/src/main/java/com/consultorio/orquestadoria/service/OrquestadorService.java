@@ -53,7 +53,8 @@ public class OrquestadorService {
         contexto.append("\n- Si ya identificaste o registraste al paciente en esta conversacion, no vuelvas a llamar "
                 + "identificar_o_registrar_paciente para el mismo dato. Usa el pacienteId que ya obtuviste.");
 
-        // Deteccion de rol: primero revisamos si quien escribe es un medico
+        Long organizacionId = 1L; // default de respaldo si no se logra determinar
+
         Optional<MedicoDTO> medico = medicosClient.buscarPorTelefono(clave);
         boolean esMedico = medico.isPresent();
 
@@ -69,6 +70,7 @@ public class OrquestadorService {
             Optional<ConsultorioDTO> consultorio = medicosClient.buscarConsultorioPorNumeroWhatsapp(numeroDestino);
             if (consultorio.isPresent()) {
                 ConsultorioDTO c = consultorio.get();
+                organizacionId = c.getOrganizacionId();
                 contexto.append("\n- IMPORTANTE: esta conversacion es del consultorio '").append(c.getNombreConsultorio())
                         .append("', consultorioId=").append(c.getId())
                         .append(", medicoId=").append(c.getMedicoId())
@@ -81,7 +83,7 @@ public class OrquestadorService {
 
         String systemPrompt = personalidadConfig.obtenerSystemPrompt() + contexto;
 
-        String respuesta = claudeClient.enviarMensaje(systemPrompt, historial, catalogoSkills.obtenerTools(), clave);
+        String respuesta = claudeClient.enviarMensaje(systemPrompt, historial, catalogoSkills.obtenerTools(), clave, organizacionId);
 
         memoriaConversacionService.agregarMensaje(clave, "assistant", respuesta);
 

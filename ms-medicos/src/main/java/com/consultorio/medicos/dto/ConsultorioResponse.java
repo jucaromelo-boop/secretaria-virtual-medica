@@ -16,6 +16,7 @@ public class ConsultorioResponse {
     private Integer duracionConsultaMinutos;
     private boolean activo;
     private String numeroWhatsapp;
+    private Long organizacionId;
 
     public ConsultorioResponse(Consultorio c) {
         this.id = c.getId();
@@ -29,6 +30,7 @@ public class ConsultorioResponse {
         this.duracionConsultaMinutos = c.getDuracionConsultaMinutos();
         this.activo = c.isActivo();
         this.numeroWhatsapp = c.getNumeroWhatsapp();
+        this.organizacionId = c.getOrganizacionId();
     }
 
     public Long getId() { return id; }
@@ -42,4 +44,5 @@ public class ConsultorioResponse {
     public Integer getDuracionConsultaMinutos() { return duracionConsultaMinutos; }
     public boolean isActivo() { return activo; }
     public String getNumeroWhatsapp() { return numeroWhatsapp; }
+    public Long getOrganizacionId() { return organizacionId; }
 }
