@@ -18,13 +18,15 @@ public class MedicoService {
     private final MedicoRepository medicoRepository;
     private final EspecialidadService especialidadService;
     private final SeguroService seguroService;
+    private final AuditoriaService auditoriaService;
 
-    public MedicoService(MedicoRepository medicoRepository, EspecialidadService especialidadService, SeguroService seguroService) {
+    public MedicoService(MedicoRepository medicoRepository, EspecialidadService especialidadService,
+                         SeguroService seguroService, AuditoriaService auditoriaService) {
         this.medicoRepository = medicoRepository;
         this.especialidadService = especialidadService;
         this.seguroService = seguroService;
+        this.auditoriaService = auditoriaService;
     }
-
     public Medico crearMedico(String nombreCompleto, String cedulaProfesional, Long especialidadPrincipalId,
                               Long organizacionId, String universidad, Integer anioGraduacion) {
         if (medicoRepository.existsByCedulaProfesional(cedulaProfesional)) {
@@ -34,7 +36,9 @@ public class MedicoService {
         Medico medico = new Medico(nombreCompleto, cedulaProfesional, especialidad, organizacionId);
         medico.setUniversidad(universidad);
         medico.setAnioGraduacion(anioGraduacion);
-        return medicoRepository.save(medico);
+        Medico creado = medicoRepository.save(medico);
+        auditoriaService.registrar("CREAR_MEDICO", "Medico", creado.getId(), "Cedula: " + creado.getCedulaProfesional());
+        return creado;
     }
 
     public List<Medico> listarActivos() {
