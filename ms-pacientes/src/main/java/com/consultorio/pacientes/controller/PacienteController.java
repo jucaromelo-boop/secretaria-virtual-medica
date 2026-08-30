@@ -50,6 +50,7 @@ public class PacienteController {
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping("/{id}")
     public PacienteResponse buscarPorId(@PathVariable("id") Long id) {
+        org.slf4j.LoggerFactory.getLogger(PacienteController.class).info("Buscando paciente id={}", id);
         return new PacienteResponse(pacienteService.buscarPorId(id));
     }
 
