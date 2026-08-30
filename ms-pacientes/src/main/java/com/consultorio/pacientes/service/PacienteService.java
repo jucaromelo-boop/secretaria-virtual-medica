@@ -15,9 +15,11 @@ import java.util.Optional;
 public class PacienteService {
 
     private final PacienteRepository pacienteRepository;
+    private final AuditoriaService auditoriaService;
 
-    public PacienteService(PacienteRepository pacienteRepository) {
+    public PacienteService(PacienteRepository pacienteRepository, AuditoriaService auditoriaService) {
         this.pacienteRepository = pacienteRepository;
+        this.auditoriaService = auditoriaService;
     }
 
     public Paciente crearPaciente(Paciente paciente, Long organizacionId) {
@@ -25,7 +27,9 @@ public class PacienteService {
             throw new DocumentoDuplicadoException(paciente.getDocumentoIdentidad());
         }
         paciente.getOrganizacionIds().add(organizacionId);
-        return pacienteRepository.save(paciente);
+        Paciente creado = pacienteRepository.save(paciente);
+        auditoriaService.registrar("CREAR_PACIENTE", "Paciente", creado.getId(), "Documento: " + creado.getDocumentoIdentidad());
+        return creado;
     }
 
     public org.springframework.data.domain.Page<Paciente> listarPaginado(org.springframework.data.domain.Pageable pageable) {
@@ -70,6 +74,7 @@ public class PacienteService {
         paciente.setSeguroMedico(datosActualizados.getSeguroMedico());
         paciente.setNumeroPoliza(datosActualizados.getNumeroPoliza());
         paciente.setNotas(datosActualizados.getNotas());
+        actualizarPaciente: auditoriaService.registrar("ACTUALIZAR_PACIENTE", "Paciente", id, "Datos actualizados");
 
         return pacienteRepository.save(paciente);
     }
@@ -78,6 +83,7 @@ public class PacienteService {
         Paciente paciente = buscarPorId(id);
         paciente.setActivo(false);
         pacienteRepository.save(paciente);
+        auditoriaService.registrar("DESACTIVAR_PACIENTE", "Paciente", id, null);
     }
 
     public Paciente reactivarPaciente(Long id) {
