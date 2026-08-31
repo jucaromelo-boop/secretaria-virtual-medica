@@ -26,14 +26,16 @@ public class NotificacionService {
     private final PacientesClient pacientesClient;
     private final CanalWhatsappClient canalWhatsappClient;
     private final CitasClient citasClient;
+    private final AuditoriaService auditoriaService;
 
     public NotificacionService(NotificacionRepository notificacionRepository,
                                PacientesClient pacientesClient, CanalWhatsappClient canalWhatsappClient,
-                               CitasClient citasClient) {
+                               CitasClient citasClient, AuditoriaService auditoriaService) {
         this.notificacionRepository = notificacionRepository;
         this.pacientesClient = pacientesClient;
         this.canalWhatsappClient = canalWhatsappClient;
         this.citasClient = citasClient;
+        this.auditoriaService = auditoriaService;
     }
 
     public void procesarCitaCreada(Long citaId, Long pacienteId, Long medicoId, LocalDateTime fechaHora) {
@@ -102,6 +104,9 @@ public class NotificacionService {
         notificacion.setEstado(EstadoNotificacion.ENVIADA);
         notificacion.setFechaEnvio(LocalDateTime.now());
         notificacionRepository.save(notificacion);
+
+        auditoriaService.registrar("ENVIAR_NOTIFICACION", "Notificacion", notificacion.getId(), null,
+                "Tipo: " + notificacion.getTipo() + ", Medico: " + notificacion.getMedicoId());
     }
 
     public List<Notificacion> listarPorMedico(Long medicoId) {
