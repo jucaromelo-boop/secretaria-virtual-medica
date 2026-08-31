@@ -83,7 +83,7 @@ public class OrquestadorService {
 
         String systemPrompt = personalidadConfig.obtenerSystemPrompt() + contexto;
 
-        String respuesta = claudeClient.enviarMensaje(systemPrompt, historial, catalogoSkills.obtenerTools(), clave, organizacionId);
+        String respuesta = claudeClient.enviarMensaje(systemPrompt, historial, catalogoSkills.obtenerTools(esMedico), clave, organizacionId, esMedico);
 
         memoriaConversacionService.agregarMensaje(clave, "assistant", respuesta);
 

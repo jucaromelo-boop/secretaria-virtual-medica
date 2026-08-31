@@ -28,7 +28,13 @@ public class SkillExecutor {
         this.listaEsperaClient = listaEsperaClient;
     }
 
-    public String ejecutar(String nombreSkill, Map<String, Object> input, String telefonoConversacion, Long organizacionId) {
+    public String ejecutar(String nombreSkill, Map<String, Object> input, String telefonoConversacion,
+                           Long organizacionId, boolean esMedico) {
+
+        if (!esPermitidaParaRol(nombreSkill, esMedico)) {
+            return "No tienes permiso para realizar esa accion.";
+        }
+
         try {
             return switch (nombreSkill) {
                 case "buscar_especialidades" -> buscarEspecialidades();
@@ -36,7 +42,7 @@ public class SkillExecutor {
                 case "identificar_o_registrar_paciente" -> identificarORegistrarPaciente(input, organizacionId);
                 case "crear_cita" -> crearCita(input);
                 case "consultar_citas_paciente" -> consultarCitasPaciente(input);
-                case "cancelar_cita" -> cancelarCita(input);
+                case "cancelar_cita" -> cancelarCitaComoPaciente(input, telefonoConversacion);
                 case "consultar_agenda_del_dia" -> consultarAgendaDelDia(input);
                 case "reagendar_cita" -> reagendarCita(input);
                 case "cancelar_cita_como_medico" -> cancelarCitaComoMedico(input);
@@ -48,6 +54,15 @@ public class SkillExecutor {
         } catch (Exception ex) {
             return "Ocurrio un error ejecutando la operacion: " + ex.getMessage();
         }
+    }
+
+    private boolean esPermitidaParaRol(String nombreSkill, boolean esMedico) {
+        List<String> skillsMedico = List.of("consultar_agenda_del_dia", "reagendar_cita", "cancelar_cita_como_medico");
+        List<String> skillsPaciente = List.of("buscar_especialidades", "buscar_medicos_por_especialidad",
+                "identificar_o_registrar_paciente", "crear_cita", "consultar_citas_paciente", "cancelar_cita",
+                "listar_pacientes_del_telefono", "registrar_familiar", "registrar_lista_espera");
+
+        return esMedico ? skillsMedico.contains(nombreSkill) : skillsPaciente.contains(nombreSkill);
     }
 
     private String listarPacientesDelTelefono(String telefono) {
@@ -141,9 +156,26 @@ public class SkillExecutor {
                 .collect(Collectors.joining("; "));
     }
 
-    private String cancelarCita(Map<String, Object> input) {
+    private String cancelarCitaComoPaciente(Map<String, Object> input, String telefonoConversacion) {
         Long citaId = ((Number) input.get("citaId")).longValue();
         String motivo = input.get("motivo") != null ? (String) input.get("motivo") : "No especificado";
+
+        List<PacienteDTO> pacientesDelTelefono = pacientesClient.listarPorTelefono(telefonoConversacion);
+        List<Long> pacienteIdsValidos = pacientesDelTelefono.stream()
+                .map(PacienteDTO::getId)
+                .collect(Collectors.toList());
+
+        if (pacienteIdsValidos.isEmpty()) {
+            return "No encontramos ningun paciente registrado con este numero, no se puede cancelar la cita.";
+        }
+
+        boolean esDueño = pacienteIdsValidos.stream()
+                .flatMap(pid -> citasClient.listarPorPaciente(pid).stream())
+                .anyMatch(cita -> cita.getId().equals(citaId));
+
+        if (!esDueño) {
+            return "Esa cita no pertenece a ninguno de los pacientes registrados con este numero, no se puede cancelar.";
+        }
 
         return citasClient.cancelarCita(citaId, motivo);
     }

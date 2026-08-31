@@ -9,7 +9,34 @@ import java.util.Map;
 @Component
 public class CatalogoSkills {
 
-    public List<ToolDefinition> obtenerTools() {
+    private static final List<String> SKILLS_PACIENTE = List.of(
+            "buscar_especialidades",
+            "buscar_medicos_por_especialidad",
+            "identificar_o_registrar_paciente",
+            "crear_cita",
+            "consultar_citas_paciente",
+            "cancelar_cita",
+            "listar_pacientes_del_telefono",
+            "registrar_familiar",
+            "registrar_lista_espera"
+    );
+
+    private static final List<String> SKILLS_MEDICO = List.of(
+            "consultar_agenda_del_dia",
+            "reagendar_cita",
+            "cancelar_cita_como_medico"
+    );
+
+    public List<ToolDefinition> obtenerTools(boolean esMedico) {
+        List<String> permitidas = esMedico ? SKILLS_MEDICO : SKILLS_PACIENTE;
+        return obtenerTodasLasDefiniciones().stream()
+                .filter(tool -> permitidas.contains(tool.getName()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+
+
+    private List<ToolDefinition> obtenerTodasLasDefiniciones() {
         return List.of(
                 new ToolDefinition(
                         "buscar_especialidades",
