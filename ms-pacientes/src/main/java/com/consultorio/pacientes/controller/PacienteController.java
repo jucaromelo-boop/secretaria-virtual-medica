@@ -49,9 +49,13 @@ public class PacienteController {
 
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST','PATIENT','SERVICE')")
     @GetMapping("/{id}")
-    public PacienteResponse buscarPorId(@PathVariable("id") Long id) {
+    public PacienteResponse buscarPorId(@PathVariable("id") Long id, org.springframework.security.core.Authentication authentication) {
         org.slf4j.LoggerFactory.getLogger(PacienteController.class).info("Buscando paciente id={}", id);
-        return new PacienteResponse(pacienteService.buscarPorId(id));
+
+        Paciente paciente = pacienteService.buscarPorId(id);
+        validarOwnershipSiEsPaciente(paciente, authentication);
+
+        return new PacienteResponse(paciente);
     }
 
     @PreAuthorize("hasAnyRole('DOCTOR','CLINIC_ADMIN','RECEPTIONIST')")
@@ -189,6 +193,24 @@ public class PacienteController {
                 "No se pudo determinar la organizacion del usuario");
     }
 
+    private void validarOwnershipSiEsPaciente(Paciente paciente, org.springframework.security.core.Authentication authentication) {
+        boolean esSoloPaciente = authentication.getAuthorities().stream()
+                .map(Object::toString)
+                .allMatch(role -> role.equals("ROLE_PATIENT") || role.equals("ROLE_offline_access")
+                        || role.equals("ROLE_default-roles-consultorio") || role.equals("ROLE_uma_authorization"));
+
+        if (!esSoloPaciente) {
+            return;
+        }
+
+        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
+            String pacienteIdClaim = jwt.getClaimAsString("paciente_id");
+            if (pacienteIdClaim == null || !pacienteIdClaim.equals(String.valueOf(paciente.getId()))) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "No tienes permiso para acceder a este expediente");
+            }
+        }
+    }
 
 
 }
