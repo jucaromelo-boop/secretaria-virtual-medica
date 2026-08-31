@@ -19,13 +19,15 @@ public class SkillExecutor {
     private final PacientesClient pacientesClient;
     private final CitasClient citasClient;
     private final ListaEsperaClient listaEsperaClient;
+    private final AiDataSanitizer aiDataSanitizer;
 
     public SkillExecutor(MedicosClient medicosClient, PacientesClient pacientesClient, CitasClient citasClient,
-                         ListaEsperaClient listaEsperaClient) {
+                         ListaEsperaClient listaEsperaClient, AiDataSanitizer aiDataSanitizer) {
         this.medicosClient = medicosClient;
         this.pacientesClient = pacientesClient;
         this.citasClient = citasClient;
         this.listaEsperaClient = listaEsperaClient;
+        this.aiDataSanitizer = aiDataSanitizer;
     }
 
     public String ejecutar(String nombreSkill, Map<String, Object> input, String telefonoConversacion,
@@ -71,8 +73,7 @@ public class SkillExecutor {
             return "No hay pacientes registrados con este numero todavia.";
         }
         return pacientes.stream()
-                .map(p -> "pacienteId=" + p.getId() + ", nombre=" + p.getNombreCompleto()
-                        + ", parentesco=" + (p.getParentesco() != null ? p.getParentesco() : "Titular"))
+                .map(aiDataSanitizer::describirPacienteParaIa)
                 .collect(Collectors.joining("; "));
     }
 
