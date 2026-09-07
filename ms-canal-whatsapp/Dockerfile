@@ -1,10 +1,7 @@
-# ---------- Etapa 1: build ----------
 FROM maven:3.9-eclipse-temurin-17 AS build
 
 WORKDIR /workspace
 
-# Copiamos primero el pom padre y los poms de los modulos (sin el codigo aun)
-# Esto aprovecha el cache de Docker: si solo cambia el codigo java, no vuelve a descargar dependencias
 COPY pom.xml .
 COPY discovery-server/pom.xml discovery-server/
 COPY config-server/pom.xml config-server/
@@ -16,31 +13,32 @@ COPY ms-notificaciones/pom.xml ms-notificaciones/
 COPY ms-canal-whatsapp/pom.xml ms-canal-whatsapp/
 COPY ms-orquestador-ia/pom.xml ms-orquestador-ia/
 
-# Descarga las dependencias de ms-citas y sus modulos necesarios
-RUN mvn -pl ms-citas -am dependency:go-offline -B
+RUN mvn -pl ms-canal-whatsapp -am dependency:go-offline -B
 
-# Ahora si copiamos el codigo fuente completo
 COPY discovery-server discovery-server
 COPY config-server config-server
 COPY api-gateway api-gateway
 COPY ms-citas ms-citas
+COPY ms-pacientes ms-pacientes
+COPY ms-medicos ms-medicos
+COPY ms-notificaciones ms-notificaciones
+COPY ms-canal-whatsapp ms-canal-whatsapp
+COPY ms-orquestador-ia ms-orquestador-ia
 
-# Compilamos SOLO ms-citas (-pl), pero permitiendo construir sus dependencias del reactor (-am)
-RUN mvn -pl ms-citas -am clean package -DskipTests -B
+RUN mvn -pl ms-canal-whatsapp -am clean package -DskipTests -B
 
-# ---------- Etapa 2: imagen final ----------
 FROM eclipse-temurin:17-jre-alpine
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
 
-COPY --from=build /workspace/ms-citas/target/ms-citas.jar app.jar
+COPY --from=build /workspace/ms-canal-whatsapp/target/ms-canal-whatsapp.jar app.jar
 
 RUN chown appuser:appgroup app.jar
 
 USER appuser
 
-EXPOSE 8081
+EXPOSE 8085
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

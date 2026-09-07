@@ -27,9 +27,15 @@ RUN mvn -pl ms-pacientes -am clean package -DskipTests -B
 # ---------- Etapa 2: imagen final ----------
 FROM eclipse-temurin:17-jre-alpine
 
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 WORKDIR /app
 
 COPY --from=build /workspace/ms-pacientes/target/ms-pacientes.jar app.jar
+
+RUN chown appuser:appgroup app.jar
+
+USER appuser
 
 EXPOSE 8082
 

@@ -67,10 +67,13 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: ms-citas
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      DB_HOST: postgres
+      KEYCLOAK_JWK_URI: http://keycloak:8080/realms/consultorio/protocol/openid-connect/certs
     depends_on:
       - discovery-server
       - config-server
       - kafka
+      - postgres
     networks:
       - consultorio-net
 
@@ -85,9 +88,12 @@ services:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: ms-pacientes
+      DB_HOST: postgres
+      KEYCLOAK_JWK_URI: http://keycloak:8080/realms/consultorio/protocol/openid-connect/certs
     depends_on:
       - discovery-server
       - config-server
+      - postgres
     networks:
       - consultorio-net
 
@@ -102,9 +108,12 @@ services:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: ms-medicos
+      DB_HOST: postgres
+      KEYCLOAK_JWK_URI: http://keycloak:8080/realms/consultorio/protocol/openid-connect/certs
     depends_on:
-      - discovery-server
-      - config-server
+        - discovery-server
+        - config-server
+        - postgres
     networks:
       - consultorio-net
 
@@ -120,10 +129,53 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: ms-notificaciones
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KEYCLOAK_JWK_URI: http://keycloak:8080/realms/consultorio/protocol/openid-connect/certs
     depends_on:
       - discovery-server
       - config-server
       - kafka
+      - postgres
+    networks:
+      - consultorio-net
+
+  ms-orquestador-ia:
+    build:
+      context: .
+      dockerfile: ms-orquestador-ia/Dockerfile
+    container_name: ms-orquestador-ia
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: ms-orquestador-ia
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/consultorio/protocol/openid-connect/token
+    depends_on:
+      - discovery-server
+      - config-server
+      - keycloak
+    networks:
+      - consultorio-net
+
+  ms-canal-whatsapp:
+    build:
+      context: .
+      dockerfile: ms-canal-whatsapp/Dockerfile
+    container_name: ms-canal-whatsapp
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: ms-canal-whatsapp
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_WHATSAPP_NUMBER: ${TWILIO_WHATSAPP_NUMBER}
+      TWILIO_WEBHOOK_PUBLIC_URL: ${TWILIO_WEBHOOK_PUBLIC_URL}
+    depends_on:
+      - discovery-server
+      - config-server
     networks:
       - consultorio-net
 
